@@ -1,0 +1,10 @@
+# Extracted reference material (upstream `@deepseek-ai/*` package docs, type
+# files and bundled JS pulled out of the installed app.asar). Kept on disk for
+# local reference only; do not redistribute it with this repository.
+/ref/
+
+# Local editor / OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log
