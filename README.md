@@ -16,7 +16,7 @@
 | `notes/scripts/` | 安装/卸载/状态检查/证据采集脚本（可审阅，默认 DryRun） |
 | `notes/snippets/` | 最小可运行客户端 bundle 片段 |
 | `tools/` | asar 解析、窗口截图、安全点击、插件图检查、客户端 bundle 冒烟测试 |
-| `ref/` | 从安装包内提取的官方文档、模板与原生右侧栏参考实现 |
+| `ref/` | 从安装包内提取的官方文档、模板与原生右侧栏参考实现。**已加入 `.gitignore`，仅本地保留**；换机器时可用 `tools/asar-inspect.mjs` 从 `app.asar` 重新提取（命令见 `notes/ui-api.md` 的取证索引） |
 
 ## 快速自检
 
