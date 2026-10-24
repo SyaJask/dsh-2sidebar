@@ -1,0 +1,6 @@
+# Split-files bundle: one row mounting the package. The client half registers
+# its own right-Sidebar tab type, so no other Host row is needed.
+- insert:
+    - id: split-files
+      name: '@local/dsh-split-files'
+      config: {}
