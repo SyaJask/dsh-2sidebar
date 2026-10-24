@@ -1,6 +1,10 @@
 # Split-files bundle: one row mounting the package. The client half registers
 # its own right-Sidebar tab type, so no other Host row is needed.
+#
+# The row id carries a `local-` prefix on purpose: bundle-patch row ids share one
+# namespace with every other profile layer, and a generic name is the one thing
+# another bundle could plausibly collide with.
 - insert:
-    - id: split-files
+    - id: local-split-files
       name: '@local/dsh-split-files'
       config: {}

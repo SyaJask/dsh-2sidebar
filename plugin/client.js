@@ -22,8 +22,10 @@ window.__ModuleLoader__.load({
     const PACKAGE_ID = '@local/dsh-split-files';
     /** Native tab kind this package owns. */
     const KIND = 'split-files';
-    /** Locale namespace the Host binds `t` to. */
-    const NS = 'split-files';
+    /** Locale namespace the Host binds `t` to. Scoped like the package: a
+     *  duplicate namespace+locale makes `locale.register` throw, so a generic
+     *  name would be the one shared key a future plugin could collide with. */
+    const NS = PACKAGE_ID;
     /** Lines read per page; the Host caps a page at 5000. */
     const PAGE_LINES = 2000;
     const RATIO_KEY = 'dsh-split-files.ratio';

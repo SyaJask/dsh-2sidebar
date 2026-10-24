@@ -54,7 +54,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-loca
   `ctx.sessions.list`。Host 半侧只有一个空 `apply()`。
 - 页签类型两阶段注册：`ctx.sidebarRightTabs.register({ id, kind, title, guide, keepMounted })`
   + `ctx.slots.register({ name: 'sidebar.right.pane.tab', key, locale, inject }, Body)`，
-  标题走 `sidebar.right.pane.tab.title`。
+  标题走 `sidebar.right.pane.tab.title`。locale 命名空间直接用包名
+  （`@local/dsh-split-files`）——`locale.register` 对同名命名空间+同语言会抛错，
+  通用名是唯一容易被别的插件撞上的共享键。
 - 标题栏按钮注册在 `conversation.session.header.utilities`；点击时先 `isExpanded()` 分流
   （展开态直接开，避免 `toggleExpanded` 把侧栏关掉），折叠态先 `toggleExpanded()` 再带重试地
   `ctx.sidebarRight.openTab(kind)`——`openTab` 走会话已 adopt 的 store，首帧可能抛
@@ -68,7 +70,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-loca
 | 文件 | 作用 |
 |---|---|
 | `package.json` | bundle 清单：`dsh.bundle.patch` + `dsh.client` + exports/files |
-| `cordis.patch.yml` | 插入一行 `split-files` 挂载本包 |
+| `cordis.patch.yml` | 插入一行 `local-split-files` 挂载本包（行 id 与其它 profile 层共用一个命名空间，所以带 `local-` 前缀） |
 | `index.js` | Host 半侧：空实现 |
 | `client.js` | Client 半侧：页签类型、正文、标题、标题栏按钮、样式与文案 |
 | `locale/en.json`、`locale/zh.json` | 插件设置页用的标题与描述 |
