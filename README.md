@@ -1,4 +1,4 @@
-# dsh-2sider
+# dsh-2sidebar
 
 为 DeepSeek Harness（DSH）桌面版做的右侧栏「目录分栏」插件工作区。
 
