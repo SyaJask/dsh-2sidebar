@@ -11,7 +11,7 @@ A split-pane file browser for the [DeepSeek Harness](https://github.com/deepseek
 
 ![Split files in the DSH right sidebar](docs/screenshot-split-files.png)
 
-> Status: early (`0.1.0`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
+> Status: early (`0.1.1`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
 
 ## Why
 
