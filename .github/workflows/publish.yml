@@ -1,0 +1,67 @@
+# Publish the `plugin/` package to npm.
+#
+# Two ways to run:
+#   - push a tag `v<version>` (the tag must match plugin/package.json `version`)
+#   - run the workflow manually from the Actions tab
+#
+# The first release has to be published by a maintainer locally, because a
+# trusted publisher can only be configured for a package that already exists
+# on the registry (see notes/publish-npm.md). After that, configure
+# GitHub Actions trusted publishing for this repository + this workflow file
+# and every tag push publishes with provenance, without any npm token.
+
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js and the npm registry
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Use the latest npm (trusted publishing needs npm >= 11.5)
+        run: npm install -g npm@latest
+
+      - name: Check the tag matches the package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          echo "tag=$tag package=$pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag $tag does not match plugin/package.json version $pkg"
+            exit 1
+          fi
+
+      - name: Smoke test the bundle contract
+        run: node tools/smoke-client.mjs
+        working-directory: ${{ github.workspace }}
+
+      - name: Show the package contents
+        run: npm pack --dry-run
+
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
