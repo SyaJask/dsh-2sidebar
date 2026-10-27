@@ -1,10 +1,10 @@
 # Split-files bundle: one row mounting the package. The client half registers
 # its own right-Sidebar tab type, so no other Host row is needed.
 #
-# The row id carries a `local-` prefix on purpose: bundle-patch row ids share one
-# namespace with every other profile layer, and a generic name is the one thing
-# another bundle could plausibly collide with.
+# `id` is the row id inside the profile patch, `name` must be the npm package
+# name (the loader attaches a package's browser half to the row whose specifier
+# is the bare package name).
 - insert:
-    - id: local-split-files
-      name: '@local/dsh-split-files'
+    - id: dsh-2sidebar
+      name: 'dsh-2sidebar'
       config: {}

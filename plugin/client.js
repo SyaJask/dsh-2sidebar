@@ -9,7 +9,7 @@
  * `ctx.remote.workspaceFiles`, so this bundle needs no Host routes of its own.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-split-files',
+  id: 'dsh-2sidebar',
   factory(require) {
     const React = require('react');
     const { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } = React;
@@ -19,7 +19,7 @@ window.__ModuleLoader__.load({
     const inject = ['slots', 'sessions', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles'];
 
     /** Package identity: also the native tab implementation id and slot key. */
-    const PACKAGE_ID = '@local/dsh-split-files';
+    const PACKAGE_ID = 'dsh-2sidebar';
     /** Native tab kind this package owns. */
     const KIND = 'split-files';
     /** Locale namespace the Host binds `t` to. Scoped like the package: a
@@ -28,8 +28,11 @@ window.__ModuleLoader__.load({
     const NS = PACKAGE_ID;
     /** Lines read per page; the Host caps a page at 5000. */
     const PAGE_LINES = 2000;
-    const RATIO_KEY = 'dsh-split-files.ratio';
-    const TREE_HIDDEN_KEY = 'dsh-split-files.tree-hidden';
+    const RATIO_KEY = 'dsh-2sidebar.ratio';
+    const TREE_HIDDEN_KEY = 'dsh-2sidebar.tree-hidden';
+    /** Pre-rename keys: read once so an existing install keeps its saved layout. */
+    const LEGACY_RATIO_KEY = 'dsh-split-files.ratio';
+    const LEGACY_TREE_HIDDEN_KEY = 'dsh-split-files.tree-hidden';
 
     const IMAGE_MIME = {
       png: 'image/png',
@@ -569,8 +572,8 @@ window.__ModuleLoader__.load({
 
       const tree = useTree({ root: cwd, list });
       const preview = usePreview({ read, readBytes });
-      const [ratio, setRatio] = useState(() => clampRatio(readStored(RATIO_KEY, 46)));
-      const [treeHidden, setTreeHidden] = useState(() => readStored(TREE_HIDDEN_KEY, 'false') === 'true');
+      const [ratio, setRatio] = useState(() => clampRatio(readStored(RATIO_KEY, readStored(LEGACY_RATIO_KEY, 46))));
+      const [treeHidden, setTreeHidden] = useState(() => readStored(TREE_HIDDEN_KEY, readStored(LEGACY_TREE_HIDDEN_KEY, 'false')) === 'true');
       const [dragging, setDragging] = useState(false);
       const containerRef = useRef(null);
 

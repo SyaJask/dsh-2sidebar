@@ -1,10 +1,31 @@
 {
-  "name": "@local/dsh-split-files",
+  "name": "dsh-2sidebar",
   "version": "0.1.0",
-  "private": true,
+  "description": "Split-pane file browser for the DSH right sidebar: directory tree on the left, file content on the right.",
   "license": "MIT",
   "type": "module",
-  "description": "Split-pane workspace browser for the DSH right sidebar: directory tree on the left, file content on the right.",
+  "main": "./index.js",
+  "author": "SyaJask",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SyaJask/dsh-2sidebar.git",
+    "directory": "plugin"
+  },
+  "homepage": "https://github.com/SyaJask/dsh-2sidebar#readme",
+  "bugs": {
+    "url": "https://github.com/SyaJask/dsh-2sidebar/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "file-browser",
+    "sidebar",
+    "split-view",
+    "file-preview",
+    "workspace"
+  ],
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -20,6 +41,9 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
     "client": {

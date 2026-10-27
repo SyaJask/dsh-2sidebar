@@ -54,7 +54,7 @@ new Function('window', source)(globalThis.window);
 if (registrations.size !== 1) throw new Error(`expected 1 factory, got ${registrations.size}`);
 const [record] = [...registrations.values()];
 console.log(`factory id: ${record.id}`);
-if (record.id !== '@local/dsh-split-files') throw new Error('unexpected package id');
+if (record.id !== 'dsh-2sidebar') throw new Error('unexpected package id');
 
 const exportsObject = record.factory(requireMock);
 if (typeof exportsObject.apply !== 'function') throw new Error('apply missing');
@@ -123,7 +123,7 @@ if (registrationsMade.tabTypes.length !== 1) problems.push('sidebarRightTabs.reg
 const type = registrationsMade.tabTypes[0];
 if (!type) problems.push('no tab type definition');
 else {
-  if (type.id !== '@local/dsh-split-files') problems.push(`tab type id is ${type.id}`);
+  if (type.id !== 'dsh-2sidebar') problems.push(`tab type id is ${type.id}`);
   if (type.kind !== 'split-files') problems.push(`tab kind is ${type.kind}`);
   if (!Array.isArray(type.guide) || type.guide.length === 0) problems.push('guide entry missing');
   else {
