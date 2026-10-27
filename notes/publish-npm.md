@@ -5,16 +5,22 @@
 
 ## 0. 当前状态（2026-10-28）
 
-- 已发布 `dsh-2sidebar@0.1.0`（registry 时间 `2026-10-27T16:45:34Z`，手动发布，无 provenance）。
-- Trusted Publishing 待配置；配置后由 tag 触发的发布自动带 provenance。
-- 包名 `dsh-2sidebar` 已被本账号占用（`npm view dsh-2sidebar version` 返回 `0.1.0`）。
+- 已发布 `dsh-2sidebar@0.1.0`（手动，无 provenance）和 `dsh-2sidebar@0.1.1`（Actions + Trusted Publishing，带 provenance）。
+- `0.1.1` 由 tag `v0.1.1` 触发的 run `40547406832` 发布，registry 时间 `2026-10-27T17:06:47Z`。
+- Trusted Publishing 已配置：GitHub Actions / `SyaJask` / `dsh-2sidebar` / `publish.yml`。
+- 包名 `dsh-2sidebar` 已被本账号占用（`npm view --prefer-online dsh-2sidebar version` 返回 `0.1.1`）。
 - 插件 id / locale 命名空间 / slot key / localStorage key 已从 `@local/dsh-split-files`
   改为 `dsh-2sidebar`；旧 localStorage 键仍会兜底读取一次。
 - `plugin/package.json` 已去掉 `"private": true`，补齐 `license`、`repository`（`directory: plugin`）、
   `homepage`、`bugs`、`keywords`、`author`、`publishConfig.access`。
-- 版本仍是 `0.1.0`：作为 npm 上的首个版本与现有 GitHub release 对齐。
+- 版本策略：`0.1.x` 阶段，行为变化升 patch，标识/破坏性变化升 minor；发布 tag 必须与
+  `plugin/package.json` 的版本一致。
 
-## 1. 首次发布（必须手动）
+> 注意：npm registry 的 CDN 有几分钟延迟。发布成功后如果 `npm view` 还是旧版本，用
+> `npm view --prefer-online dsh-2sidebar version` 或直接请求
+> `https://registry.npmjs.org/dsh-2sidebar/<version>` 验证。
+
+## 1. 首次发布（已由 0.1.0 完成，留作记录）
 
 Trusted publishing 只能给**已经存在**的 npm 包配置，所以第一次要走本地 token/OTP：
 
