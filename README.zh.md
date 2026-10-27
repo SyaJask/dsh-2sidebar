@@ -3,6 +3,7 @@
 [English](README.md) | [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/dsh-2sidebar)](https://www.npmjs.com/package/dsh-2sidebar)
 [![DeepSeek Harness 0.2.1-rc.3](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.3-4f46e5)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
@@ -44,37 +45,34 @@ DSH 自带的 **Files** 页签是把文件作为预览打开在侧栏里，浏�
 - 一个由插件管理器管理的 DSH Desktop 配置（在 `0.2.1-rc.3` 上验证；见[兼容性](#兼容性)）。
 - 右侧栏和客户端插件管理器（DSH 自带）。
 
-### 1. 获取仓库
+### 从 npm 安装（推荐）
+
+```powershell
+dsh plugin --profile desktop add dsh-2sidebar
+```
+
+或在 DSH Web 界面里：**Plugins** → **Add plugin** → 输入 `dsh-2sidebar` → **Install**，然后把 **Split files** bundle 打开。
+
+`desktop` 是 DSH Desktop 的默认 profile，如果你的安装用了别的名字请替换。不需要重启：宿主会原地重载 profile（HMR）。如果已经挂载的页签还显示旧组件，按一次 `Ctrl+Shift+R`。
+
+### 从 clone 安装（开发）
 
 ```powershell
 git clone https://github.com/SyaJask/dsh-2sidebar.git
-```
-
-### 2. 安装 bundle
-
-在 DSH Web 界面里：**Plugins** → **Add plugin** → 填 clone 出来的 `plugin` 目录的**绝对路径**（例如 `C:\src\dsh-2sidebar\plugin`）→ **Install**，然后把 **Split files** bundle 打开。
-
-或者用命令行（该命令会把 `add` 转发给 profile 目录里的 pnpm）：
-
-```powershell
 dsh plugin --profile desktop add "link:C:/src/dsh-2sidebar/plugin"
 ```
 
-`desktop` 是 DSH Desktop 的默认 profile，如果你的安装用了别的名字请替换。
-
-不需要重启：宿主会原地重载 profile（HMR）。如果已经挂载的页签还显示旧组件，按一次 `Ctrl+Shift+R`。
+也可以在 GUI 的 **Add plugin** 对话框里填 `plugin` 目录的**绝对路径**。
 
 不想跑 pnpm 的 Windows 用户可以用带备份/回滚的脚本（默认只预演）：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
   -PluginDir C:\src\dsh-2sidebar\plugin          # 只打印计划
-# 加 -Apply 才写入；回滚用 uninstall-local-bundle.ps1 -Name @local/dsh-split-files -Apply
+# 加 -Apply 才写入
 ```
 
-> npm 发布在计划中。发布之后，在同一个对话框里填包名即可安装，不再需要 clone 和本地路径。
-
-### 3. 打开
+### 打开
 
 - 点会话标题栏的**分栏图标**（原生「打开/收起右侧栏」按钮旁边）。
 - 或在右侧栏开始页选择 **Split files** 卡片。
@@ -86,10 +84,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-
 - 命令行：
 
 ```powershell
-dsh plugin --profile desktop remove @local/dsh-split-files
+dsh plugin --profile desktop remove dsh-2sidebar
 ```
 
-- 脚本：`notes\scripts\uninstall-local-bundle.ps1 -Name @local/dsh-split-files -Apply`（会先备份 profile）。
+- 本地 link 安装的脚本：`notes\scripts\uninstall-local-bundle.ps1 -Name dsh-2sidebar -Apply`（会先备份 profile）。
 
 ## 使用
 
@@ -135,14 +133,14 @@ dsh plugin --profile desktop remove @local/dsh-split-files
 只读：它调用宿主的 workspace 文件服务，作用范围和上限与内建界面一致。bundle 不发网络请求，也没有遥测。
 
 **分栏比例和树状态存在哪？**
-`localStorage` 的 `dsh-split-files.ratio` 和 `dsh-split-files.tree-hidden`。清除站点数据或这两个键即可重置。
+`localStorage` 的 `dsh-2sidebar.ratio` 和 `dsh-2sidebar.tree-hidden`。清除站点数据或这两个键即可重置。改名前的 `dsh-split-files.*` 键仍会作为兜底读取一次。
 
 **为什么会有两个文件页签？**
 自带的 **Files** 页签用于把文件交给原生预览；本插件用于同时看目录和文件。两者不冲突。
 
 ## 路线图
 
-- 发布到 npm，做到一行命令安装。
+- 首个 npm 版本与 trusted publishing。
 - 文件搜索/过滤、目录优先排序、隐藏 dotfiles 开关。
 - 通过 workspace 文件变更流自动刷新。
 - 「在原生预览中打开」（PDF/Office/HTML）。
@@ -167,11 +165,12 @@ node tools/smoke-client.mjs        # 注册 + 渲染冒烟测试
 
 | 路径 | 说明 |
 |---|---|
-| `plugin/` | 插件本体，安装目标就是这个目录 |
+| `plugin/` | 插件本体，安装目标就是这个目录，也是 npm 包 |
 | `plugin/README.md` | 包内 README（npm 上也会用它） |
-| `notes/` | 实现笔记与安装/验证脚本 |
+| `notes/` | 实现笔记、安装/验证脚本，以及 npm 发布手册（`notes/publish-npm.md`） |
 | `tools/` | 开发辅助：asar 解析、截图、smoke、冲突扫描 |
 | `docs/` | 截图 |
+| `.github/workflows/` | CI：带 provenance 的 npm 发布 |
 | `ref/` | 从安装包提取的上游参考，已 gitignore，仅本地保留 |
 
 ## License

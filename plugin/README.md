@@ -1,10 +1,10 @@
-# dsh-split-files
+# dsh-2sidebar
 
 A split-pane file browser for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) right sidebar: directory tree on the left, the selected file on the right — both visible at once.
 
 ![Split files in the DSH right sidebar](https://raw.githubusercontent.com/SyaJask/dsh-2sidebar/main/docs/screenshot-split-files.png)
 
-Part of [dsh-2sidebar](https://github.com/SyaJask/dsh-2sidebar). Full documentation: [English](https://github.com/SyaJask/dsh-2sidebar#readme) · [中文](https://github.com/SyaJask/dsh-2sidebar/blob/main/README.zh.md).
+Full documentation: [English](https://github.com/SyaJask/dsh-2sidebar#readme) · [中文](https://github.com/SyaJask/dsh-2sidebar/blob/main/README.zh.md).
 
 ## Features
 
@@ -16,17 +16,22 @@ Part of [dsh-2sidebar](https://github.com/SyaJask/dsh-2sidebar). Full documentat
 
 ## Install
 
-This package is not on the npm registry yet. For now, install it from a clone of the repository:
+```powershell
+dsh plugin --profile desktop add dsh-2sidebar
+```
+
+Or in the DSH Web GUI: **Plugins** → **Add plugin** → `dsh-2sidebar` → **Install**, then enable the **Split files** bundle.
+
+To develop against a clone, install the package directory directly instead:
 
 ```powershell
-git clone https://github.com/SyaJask/dsh-2sidebar.git
 dsh plugin --profile desktop add "link:C:/src/dsh-2sidebar/plugin"
 ```
 
-Or in the DSH Web GUI: **Plugins** → **Add plugin** → the absolute path of the `plugin` directory → **Install**, then enable the **Split files** bundle. Uninstall with:
+Uninstall with:
 
 ```powershell
-dsh plugin --profile desktop remove @local/dsh-split-files
+dsh plugin --profile desktop remove dsh-2sidebar
 ```
 
 Replace `desktop` with your profile name if it differs. No restart is needed (the host reloads the profile in place); if an already-mounted tab keeps the old component, press `Ctrl+Shift+R`.

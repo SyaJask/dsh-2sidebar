@@ -3,6 +3,7 @@
 [English](README.md) | [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/dsh-2sidebar)](https://www.npmjs.com/package/dsh-2sidebar)
 [![DeepSeek Harness 0.2.1-rc.3](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.3-4f46e5)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
@@ -44,37 +45,34 @@ Both can be installed and used at the same time.
 - DSH Desktop with a managed profile (tested on `0.2.1-rc.3`; see [Compatibility](#compatibility)).
 - The right sidebar and the client plugin manager (both ship with DSH).
 
-### 1. Get the repository
+### From npm (recommended)
+
+```powershell
+dsh plugin --profile desktop add dsh-2sidebar
+```
+
+Or in the DSH Web GUI: **Plugins** → **Add plugin** → enter `dsh-2sidebar` → **Install**, then switch the **Split files** bundle on.
+
+`desktop` is the default DSH Desktop profile; replace it if your installation uses another name. No restart is needed: the host reloads the profile in place (HMR). If a tab that is already mounted keeps the old component, press `Ctrl+Shift+R`.
+
+### From a clone (development)
 
 ```powershell
 git clone https://github.com/SyaJask/dsh-2sidebar.git
-```
-
-### 2. Install the bundle
-
-In the DSH Web GUI: **Plugins** → **Add plugin** → enter the absolute path of the `plugin` directory in the clone (for example `C:\src\dsh-2sidebar\plugin`) → **Install**, then switch the **Split files** bundle on.
-
-Or from a terminal (the CLI forwards `add` to pnpm in the profile):
-
-```powershell
 dsh plugin --profile desktop add "link:C:/src/dsh-2sidebar/plugin"
 ```
 
-`desktop` is the default DSH Desktop profile; replace it if your installation uses another name.
-
-No restart is needed: the host reloads the profile in place (HMR). If a tab that is already mounted keeps the old component, press `Ctrl+Shift+R`.
+You can also point the GUI's **Add plugin** dialog at the absolute path of the `plugin` directory.
 
 Windows users who do not want to run pnpm can use the backup/rollback script instead (dry-run by default):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
   -PluginDir C:\src\dsh-2sidebar\plugin          # prints the plan only
-# add -Apply to write; restore with uninstall-local-bundle.ps1 -Name @local/dsh-split-files -Apply
+# add -Apply to write
 ```
 
-> Publishing to npm is planned. Once it is out, installation becomes a package name in the same dialog, with no clone and no local path.
-
-### 3. Open it
+### Open it
 
 - Click the **split icon** in the session header, next to the native "open/collapse right sidebar" button.
 - Or open the right sidebar start page and pick the **Split files** card.
@@ -86,10 +84,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-
 - CLI:
 
 ```powershell
-dsh plugin --profile desktop remove @local/dsh-split-files
+dsh plugin --profile desktop remove dsh-2sidebar
 ```
 
-- Script: `notes\scripts\uninstall-local-bundle.ps1 -Name @local/dsh-split-files -Apply` (backs up the profile first).
+- Script for local link installs: `notes\scripts\uninstall-local-bundle.ps1 -Name dsh-2sidebar -Apply` (backs up the profile first).
 
 ## Usage
 
@@ -135,14 +133,14 @@ Not inline. Use DSH's native preview tab for those formats; this plugin focuses 
 It is read-only: it calls the host's workspace file service, which applies the same workspace scoping and limits as the built-in UI. The bundle makes no network requests and has no telemetry.
 
 **Where are the split ratio and tree state stored?**
-In `localStorage` (`dsh-split-files.ratio`, `dsh-split-files.tree-hidden`). Clear site data or those two keys to reset them.
+In `localStorage` (`dsh-2sidebar.ratio`, `dsh-2sidebar.tree-hidden`). Clear site data or those two keys to reset them. The pre-rename `dsh-split-files.*` keys are still read as a fallback once.
 
 **Why are there two file tabs?**
 The built-in **Files** tab is for opening files into native previews; this plugin is for reading a tree and a file at the same time. They do not conflict.
 
 ## Roadmap
 
-- Publish to npm for one-command installation.
+- First npm release and trusted publishing.
 - File search/filter, directory-first sorting, hidden-file toggle.
 - Auto-refresh through the workspace file change feed.
 - "Open in native preview" for PDF/Office/HTML.
@@ -167,11 +165,12 @@ Pull requests and issues are welcome. For anything that touches DSH's internal c
 
 | Path | What |
 |---|---|
-| `plugin/` | The plugin bundle — the install target |
+| `plugin/` | The plugin bundle — the install target and the npm package |
 | `plugin/README.md` | Package README (also used on npm) |
-| `notes/` | Implementation notes and install/verification scripts (Chinese) |
+| `notes/` | Implementation notes, install/verification scripts, and the npm release manual (`notes/publish-npm.md`) |
 | `tools/` | Development helpers: asar inspection, screenshots, smoke test, conflict scanner |
 | `docs/` | Screenshots |
+| `.github/workflows/` | CI: npm publishing with provenance |
 | `ref/` | Extracted upstream reference material, git-ignored, local only |
 
 ## License
