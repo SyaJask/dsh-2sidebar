@@ -1,5 +1,5 @@
 /**
- * Host half of the dsh-2sider bundle.
+ * Host half of the dsh-2sidebar bundle.
  *
  * The panel itself is drawn by `./client.js` in the browser, so this half is
  * empty. It still has to exist: a DSH bundle is a Cordis plugin row

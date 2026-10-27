@@ -1,6 +1,6 @@
 # DSH 客户端 UI API 研究报告：右侧栏自定义分栏 tab
 
-任务：`task-1`（研究员：ui-api-researcher）。目标：给出可直接照抄的实现级结论，供 `dsh-2sider`
+任务：`task-1`（研究员：ui-api-researcher）。目标：给出可直接照抄的实现级结论，供 `dsh-2sidebar`
 （右侧栏一个 tab：左目录树 + 右文件预览）编写客户端插件。
 
 - 取证对象：DSH Desktop `0.2.1-rc.3`（`app.asar` 内 `dsh/package.json` 同版本，build commit
@@ -311,7 +311,7 @@ guide: [{
 
 ```js
 window.__ModuleLoader__.load({
-  id: 'dsh-2sider',
+  id: 'dsh-2sidebar',
   factory(require) {
     const React = require('react');
     ...
@@ -319,21 +319,21 @@ window.__ModuleLoader__.load({
       inject: ['slots', 'locale', 'sessions', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles'],
       apply(ctx) {
         const t = ctx.locale.bind(NS);
-        ctx.effect(() => ctx.locale.register(NS, { en }), 'dsh-2sider: locale');
+        ctx.effect(() => ctx.locale.register(NS, { en }), 'dsh-2sidebar: locale');
         ctx.effect(() => ctx.sidebarRightTabs.register({
           id: TYPE_ID, kind: 'two-pane', priority: 'extension',
           title: () => t('title'),
           guide: [{ id: 'two-pane', order: 100, title: () => t('title'), description: () => t('description') }],
-        }), 'dsh-2sider: tab type');
+        }), 'dsh-2sidebar: tab type');
         ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () =>
           ctx.slots.register({
             name: 'sidebar.right.pane.tab', key: TYPE_ID, locale: NS,
             inject: (sessionId) => ({ ctx, sessionId }),
-          }, TwoPaneBody)), 'dsh-2sider: tab body');
+          }, TwoPaneBody)), 'dsh-2sidebar: tab body');
         ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab.title', () =>
           ctx.slots.register({
             name: 'sidebar.right.pane.tab.title', key: TYPE_ID, inject: () => ({ t }),
-          }, TwoPaneTitle)), 'dsh-2sider: tab title');
+          }, TwoPaneTitle)), 'dsh-2sidebar: tab title');
       },
     };
   },
@@ -428,7 +428,7 @@ lib/client.js:242-243, 1189-1196, 4334-4340`（read 的 `result.ok` / `result.va
 ], "platform": "web" } }
 ```
 
-对 dsh-2sider 建议：`@deepseek-ai/dsh-client-ui-sidebar-right`、`@deepseek-ai/dsh-client-locale`、
+对 dsh-2sidebar 建议：`@deepseek-ai/dsh-client-ui-sidebar-right`、`@deepseek-ai/dsh-client-locale`、
 `@deepseek-ai/dsh-api-workspace-files`、`@deepseek-ai/dsh-api-remotes`。**不需要**在 `external` 里写任何东西
 （本插件不 require 这些包）。
 
@@ -537,15 +537,15 @@ ctx.slots.inject('conversation.session.header.corner', () => ctx.slots.register(
 }, ExpandButton))
 ```
 
-对 dsh-2sider：**不要**注册这个槽；如果需要一个“打开双栏”的 header 按钮，
+对 dsh-2sidebar：**不要**注册这个槽；如果需要一个“打开双栏”的 header 按钮，
 用 `conversation.session.header.utilities`：
 
 ```js
 ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
   name: 'conversation.session.header.utilities',
-  id: 'dsh-2sider:open',
+  id: 'dsh-2sidebar:open',
   order: 20,
-  registrant: 'dsh-2sider',
+  registrant: 'dsh-2sidebar',
 }, function OpenButton() { /* 调 ctx.sidebarRight.openTab(KIND) */ }))
 ```
 
@@ -594,13 +594,13 @@ host 侧最少 3 个文件（见 `notes/snippets/`）：
 
 1. `package.json`：`exports` 含 `"."` 与 `"./client"`；`dsh.bundle.patch` 指向补丁；
    `dsh.client = { platform:'web', inject:[...客户端插件包名] }`。
-2. `cordis.patch.yml`：`- insert: [{ id: dsh-2sider, name: 'dsh-2sider' }]`。
+2. `cordis.patch.yml`：`- insert: [{ id: dsh-2sidebar, name: 'dsh-2sidebar' }]`。
    **没有这一行就没有 host fiber，客户端 bundle 不会被扫描/加载**（dsh-client-modules 只扫描已启用的
    Loader 条目，`dsh-client-modules/README.zh.md:12,34`）。
 3. `index.js`：`export function apply() {}`（可为空；客户端半侧负责一切）。
 
 **什么时候才需要写 host 代码**：写文件/重命名/删除/上传/递归搜索/自己开 WebSocket 推流/Office 转换等
-Remote 面没有的能力 → 按 §3.5 用 `ctx.webServer.register` 自建 `/dsh-2sider/api/*`。
+Remote 面没有的能力 → 按 §3.5 用 `ctx.webServer.register` 自建 `/dsh-2sidebar/api/*`。
 本项目（只读树 + 只读预览）**不需要**。
 
 ---

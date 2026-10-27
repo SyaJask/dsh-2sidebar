@@ -1,4 +1,4 @@
-// dsh-2sider minimal client bundle (plain JS, no build step required).
+// dsh-2sidebar minimal client bundle (plain JS, no build step required).
 //
 // Registers ONE page-type tab in DSH's native right Sidebar:
 //   left  = directory tree (workspaceFiles.list, one level at a time)
@@ -12,14 +12,14 @@
 // are NOT imported on purpose (see notes/ui-api.md, section 1 and the DSH
 // plugin-authoring practice "do not require Harness Client packages").
 window.__ModuleLoader__.load({
-  id: 'dsh-2sider',
+  id: 'dsh-2sidebar',
   factory(require) {
     const React = require('react')
     const h = React.createElement
 
     // The implementation id. Must be unique across ALL registered tab types and
     // doubles as the slot key of the body/title registrations.
-    const TYPE_ID = 'dsh-2sider'
+    const TYPE_ID = 'dsh-2sidebar'
     // The page kind. Page types have no `patterns`; they are opened by kind.
     const KIND = 'two-pane'
     // Locale namespace registered below.
@@ -409,7 +409,7 @@ window.__ModuleLoader__.load({
               // UTF-8; this skeleton stays pure ASCII on purpose so no toolchain
               // ever mangles the bundle).
             }),
-          'dsh-2sider: locale',
+          'dsh-2sidebar: locale',
         )
 
         // Phase 1: the tab TYPE. A static declaration; no runtime hooks.
@@ -429,7 +429,7 @@ window.__ModuleLoader__.load({
                 },
               ],
             }),
-          'dsh-2sider: tab type',
+          'dsh-2sidebar: tab type',
         )
 
         // Phase 2a: the body, keyed by the SAME id. The registration waits for
@@ -447,7 +447,7 @@ window.__ModuleLoader__.load({
                 TwoPaneBody,
               ),
             ),
-          'dsh-2sider: tab body',
+          'dsh-2sidebar: tab body',
         )
 
         // Phase 2b: the chip title (optional; the title captured at open time is
@@ -464,7 +464,7 @@ window.__ModuleLoader__.load({
                 TwoPaneTitle,
               ),
             ),
-          'dsh-2sider: tab title',
+          'dsh-2sidebar: tab title',
         )
       },
     }

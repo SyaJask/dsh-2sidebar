@@ -13,7 +13,7 @@
 //   node profile-manifest.mjs remove-bundle <profileDir> <name>
 //
 // <linkSpec> is what pnpm would save for a linked dependency, e.g.
-//   link:D:/ai2all/projects/personal/dsh-2sider/plugin
+//   link:D:/ai2all/projects/personal/dsh-2sidebar/plugin
 // For a registry install pass the version range (e.g. ^1.0.0); the same
 // value goes into dependencies and nothing is guessed.
 //

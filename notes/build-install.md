@@ -175,7 +175,7 @@ Options:
 
 ```bat
 :: 官方路径（= plugin_manager install_bundle 的 CLI 等价物）
-"D:\apps\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "link:D:\ai2all\projects\personal\dsh-2sider\plugin"
+"D:\apps\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "link:D:\ai2all\projects\personal\dsh-2sidebar\plugin"
 
 :: 只读核查
 "D:\apps\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop why <包名>
@@ -224,9 +224,9 @@ Options:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin          # 只打印计划
+  -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin          # 只打印计划
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin -Apply   # 用户批准后执行
+  -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin -Apply   # 用户批准后执行
 ```
 
 它只做三件事（全部在 profile 内，写前备份到 `%TEMP%\dsh-profile-backup-<时间戳>`）：
@@ -239,12 +239,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-
 手工等价命令（若不用脚本）：
 
 ```powershell
-cmd /c mklink /J "C:\Users\Kaw0n\.dsh\profiles\desktop\node_modules\@local\my-bundle" "D:\ai2all\projects\personal\dsh-2sider\plugin"
+cmd /c mklink /J "C:\Users\Kaw0n\.dsh\profiles\desktop\node_modules\@local\my-bundle" "D:\ai2all\projects\personal\dsh-2sidebar\plugin"
 # 然后编辑 profile\package.json：
-#   dependencies 里加 "@local/my-bundle": "link:D:/ai2all/projects/personal/dsh-2sider/plugin"
+#   dependencies 里加 "@local/my-bundle": "link:D:/ai2all/projects/personal/dsh-2sidebar/plugin"
 #   dsh.profile.bundles 数组末尾加 "@local/my-bundle"
 # 用 notes/scripts/profile-manifest.mjs 改更稳（保留格式 + 原子写）：
-node notes\scripts\profile-manifest.mjs add-bundle "C:\Users\Kaw0n\.dsh\profiles\desktop" "@local/my-bundle" "link:D:/ai2all/projects/personal/dsh-2sider/plugin"
+node notes\scripts\profile-manifest.mjs add-bundle "C:\Users\Kaw0n\.dsh\profiles\desktop" "@local/my-bundle" "link:D:/ai2all/projects/personal/dsh-2sidebar/plugin"
 ```
 
 路线 A 的取舍：
@@ -262,7 +262,7 @@ node notes\scripts\profile-manifest.mjs add-bundle "C:\Users\Kaw0n\.dsh\profiles
 但"退出 App"就失去 HMR 原地生效的观察机会，且需要重启 App（用户批准）。
 
 > 两条路线都**必须由用户/宿主执行**：本会话的 DSH 文件策略是 workspace-write（写入仅限
-> `D:\ai2all\projects\personal\dsh-2sider`），写 `C:\Users\Kaw0n\.dsh` 会被拒绝，且本会话审批已禁用。
+> `D:\ai2all\projects\personal\dsh-2sidebar`），写 `C:\Users\Kaw0n\.dsh` 会被拒绝，且本会话审批已禁用。
 > 脚本已把"要写的文件、要建的链接、备份路径"全部打印出来供审阅（默认 DryRun）。
 
 #### 路线 C：宿主工具
@@ -273,7 +273,7 @@ node notes\scripts\profile-manifest.mjs add-bundle "C:\Users\Kaw0n\.dsh\profiles
 
 ### 2.6 本项目的实际参数（`@local/dsh-split-files`，工作区 `plugin/`）
 
-队友实际产出的 bundle 在 `D:\ai2all\projects\personal\dsh-2sider\plugin\`：
+队友实际产出的 bundle 在 `D:\ai2all\projects\personal\dsh-2sidebar\plugin\`：
 
 - `plugin/package.json`：`name: "@local/dsh-split-files"`、`dsh.bundle.patch: "./cordis.patch.yml"`、
   `dsh.client{platform:"web", immediately:true, inject:[locale, ui-slots, ui-sidebar-right, client-modules]}`、
@@ -297,16 +297,16 @@ node_modules : (will be created as a junction)
 ```powershell
 # 路线 A（推荐先这样验证）：junction + 两处清单修改，不跑 pnpm
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin -Apply
+  -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin -Apply
 # 只读确认（自动找 Host 端口，判定客户端行是否激活）
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\check-profile-state.ps1 `
   -PluginId '@local/dsh-split-files'
 # 官方路线（会把 link: 依赖写进 package.json 并由 pnpm 回写 bundles 列表）
 & "D:\apps\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add `
-  "link:D:/ai2all/projects/personal/dsh-2sider/plugin"
+  "link:D:/ai2all/projects/personal/dsh-2sidebar/plugin"
 ```
 
-注意 `notes/snippets/package.json` 里的 `name: "dsh-2sider"` 是早期草稿，与当前 `plugin/` 的
+注意 `notes/snippets/package.json` 里的 `name: "dsh-2sidebar"` 是早期草稿，与当前 `plugin/` 的
 `@local/dsh-split-files` 不一致；**以 `plugin/package.json` 为准**（安装脚本自动读它，无需手填名字）。
 
 ---
@@ -474,7 +474,7 @@ loopback 端口后逐个探测 `/plugins/events`，不依赖固定端口（本�
 ### 5.2 路线 A（junction）的回滚
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-local-bundle.ps1 -Name "@local/my-bundle" -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin
+powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-local-bundle.ps1 -Name "@local/my-bundle" -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin
 # 默认 DryRun；确认后加 -Apply
 ```
 

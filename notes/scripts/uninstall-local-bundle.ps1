@@ -12,7 +12,7 @@
 #
 # Usage:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-local-bundle.ps1 -Name "@local/my-sidebar"
-#   ... -Name "@local/my-sidebar" -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin -Apply
+#   ... -Name "@local/my-sidebar" -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin -Apply
 #   ... -Name "@local/my-sidebar" -RestoreFrom "C:\Users\me\AppData\Local\Temp\dsh-profile-backup-20261024-161500" -Apply
 #
 # ASCII only (Windows PowerShell 5.1).

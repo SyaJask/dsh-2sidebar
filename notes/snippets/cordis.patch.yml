@@ -1,10 +1,10 @@
-# dsh-2sider bundle patch
+# dsh-2sidebar bundle patch
 #
 # `dsh plugin add <dir>` (or a local profile install) reads this file because
 # package.json declares it as `dsh.bundle.patch`, then merges this row into the
 # profile's plugin tree. Without the row no host fiber exists and the client
 # half is never scanned by dsh-client-modules.
 - insert:
-    - id: dsh-2sider
-      name: 'dsh-2sider'
+    - id: dsh-2sidebar
+      name: 'dsh-2sidebar'
       config: {}

@@ -14,7 +14,7 @@
 # processes to the workspace, and C:\Users\<me>\.dsh is outside it.
 #
 # Usage:
-#   powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin
+#   powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin
 #   ... -PluginDir <dir> -Apply
 #   ... -PluginDir <dir> -Apply -ProfileDir "C:\Users\k\.dsh\profiles\desktop"
 #

@@ -27,7 +27,7 @@ left, the selected file's content on the right.
 
 ```powershell
 # 官方 CLI（会跑 pnpm 并回写 profile 清单）
-dsh plugin --profile desktop add "link:D:/ai2all/projects/personal/dsh-2sider/plugin"
+dsh plugin --profile desktop add "link:D:/ai2all/projects/personal/dsh-2sidebar/plugin"
 
 # 卸载
 dsh plugin --profile desktop remove @local/dsh-split-files
@@ -37,9 +37,9 @@ dsh plugin --profile desktop remove @local/dsh-split-files
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin            # 预演
+  -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin            # 预演
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir D:\ai2all\projects\personal\dsh-2sider\plugin -Apply     # 实际安装
+  -PluginDir D:\ai2all\projects\personal\dsh-2sidebar\plugin -Apply     # 实际安装
 powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-local-bundle.ps1 `
   -Name @local/dsh-split-files -Apply                                 # 回滚
 ```

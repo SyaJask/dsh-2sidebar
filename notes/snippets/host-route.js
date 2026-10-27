@@ -44,14 +44,14 @@ export function apply(ctx) {
     () =>
       ctx.webServer.register({
         kind: 'prefix',
-        path: '/dsh-2sider/api',
+        path: '/dsh-2sidebar/api',
         handler: async (req, res) => {
           if (!fence(req)) {
             writeError(res, 403, 'forbidden', 'forbidden')
             return
           }
           const url = new URL(req.url ?? '/', 'http://dsh.internal')
-          const method = url.pathname.slice('/dsh-2sider/api/'.length)
+          const method = url.pathname.slice('/dsh-2sidebar/api/'.length)
           try {
             if (method === 'ping') {
               writeOk(res, { pong: true })
@@ -63,7 +63,7 @@ export function apply(ctx) {
           }
         },
       }),
-    'dsh-2sider: host routes',
+    'dsh-2sidebar: host routes',
   )
 }
 
@@ -74,7 +74,7 @@ export function apply(ctx) {
  * under a directory prefix. See dsh-better-sidebar src/client/host-route-url.ts.
  *
  *   async function callHost(method, payload) {
- *     const url = new URL('dsh-2sider/api/' + method, document.baseURI)
+ *     const url = new URL('dsh-2sidebar/api/' + method, document.baseURI)
  *     const response = await fetch(url, {
  *       method: 'POST',
  *       headers: { 'content-type': 'application/json' },
