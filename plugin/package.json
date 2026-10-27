@@ -2,6 +2,7 @@
   "name": "@local/dsh-split-files",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Split-pane workspace browser for the DSH right sidebar: directory tree on the left, file content on the right.",
   "exports": {
@@ -16,7 +17,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },

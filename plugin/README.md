@@ -75,6 +75,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-loca
 | `client.js` | Client 半侧：页签类型、正文、标题、标题栏按钮、样式与文案 |
 | `locale/en.json`、`locale/zh.json` | 插件设置页用的标题与描述 |
 | `icon.svg` | 插件图标 |
+| `LICENSE` | MIT 许可证 |
 
 ## 已知限制
 
@@ -84,3 +85,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\uninstall-loca
   （紧挨右侧栏开关）而不是 tab 条里。
 - 文件读取权限跟随宿主 `workspaceFiles` 的配置（`maxBytes` 2 MiB / 单页 `maxLines` 5000 /
   `maxEntries` 2000），本插件不绕过这些上限。
+
+## License
+
+[MIT](LICENSE) © 2026 SyaJask

@@ -33,3 +33,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\check-profile-
 - 宿主没有对外暴露 CDP / UI Automation 可用的无障碍树，界面验证靠窗口截图
   （`tools/capture-window3.ps1`）+ `/plugins/events` 的客户端插件图（`notes/scripts/check-profile-state.ps1`）。
 - 装/卸载会写 `C:\Users\<你>\.dsh\profiles\desktop`，脚本会先备份到 `%TEMP%` 并打印回滚命令。
+
+## License
+
+[MIT](LICENSE) © 2026 SyaJask
