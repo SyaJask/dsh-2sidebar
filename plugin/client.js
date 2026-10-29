@@ -12,8 +12,24 @@ window.__ModuleLoader__.load({
   id: 'dsh-2sidebar',
   factory(require) {
     const React = require('react');
-    const { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } = React;
+    const { useCallback, useEffect, useRef, useState, useSyncExternalStore } = React;
     const h = React.createElement;
+
+    /**
+     * DSH's shared client primitives: the icon set, `PathLabel`, and the
+     * file-type icons the native sidebar uses. They come from the shell's
+     * frozen module table, not from this package, so no install is needed; a
+     * host that does not seed them still gets the complete tree through the
+     * local glyph fallbacks below.
+     */
+    const primitives = (() => {
+      try {
+        return require('@deepseek-ai/dsh-client-ui-primitives') ?? {};
+      } catch (error) {
+        console.warn('[split-files] UI primitives unavailable; using built-in glyphs', error);
+        return {};
+      }
+    })();
 
     /** Cordis services this Client fiber needs. `sidebarRight` is what the header button's open call runs through. */
     const inject = ['slots', 'sessions', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles'];
@@ -116,15 +132,7 @@ window.__ModuleLoader__.load({
         h('path', { d: 'M3 5.2h1.6M3 8h1.6M3 10.8h1.6', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }));
     }
 
-    function chevronGlyph({ size = 12, className, open = false }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className,
-        style: { transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 120ms ease' },
-      }, h('path', { d: 'M6 3.6 10.4 8 6 12.4', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }));
-    }
-
-    function folderGlyph({ size = 14, className, open = false }) {
+    function folderGlyph({ size = 16, className, open = false }) {
       return h('svg', {
         width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
         'aria-hidden': true, className, style: { flex: '0 0 auto' },
@@ -136,7 +144,7 @@ window.__ModuleLoader__.load({
       }));
     }
 
-    function fileGlyph({ size = 14, className }) {
+    function fileGlyph({ size = 16, className }) {
       return h('svg', {
         width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
         'aria-hidden': true, className, style: { flex: '0 0 auto', opacity: 0.75 },
@@ -144,6 +152,114 @@ window.__ModuleLoader__.load({
         d: 'M3.4 2.2h5.4l3.8 3.8v7.8a1 1 0 0 1-1 1H3.4a1 1 0 0 1-1-1V3.2a1 1 0 0 1 1-1z',
         stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round', fill: 'none',
       }), h('path', { d: 'M8.6 2.4v3.6h3.6', stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round', fill: 'none' }));
+    }
+
+    /**
+     * Icon adapters: the native icon set when the host seeds it, the local
+     * glyphs otherwise. The tree therefore matches the built-in Files tab
+     * without depending on a primitives export surviving a DSH upgrade.
+     */
+    function FolderIcon({ open = false }) {
+      const Component = open ? primitives.IconFolderOpenRegular : primitives.IconFolderCloseRegular;
+      if (typeof Component === 'function') return h(Component, { className: 'dsfs-icon dsfs-folder-icon' });
+      return h(folderGlyph, { open, className: 'dsfs-icon dsfs-folder-icon' });
+    }
+
+    /** `FileTypeIcon` renders the per-extension badge (MD, JS, …) the Files tab uses. */
+    function FileIcon({ name }) {
+      if (typeof primitives.FileTypeIcon === 'function' && typeof primitives.classifyFileType === 'function') {
+        return h(primitives.FileTypeIcon, {
+          kind: primitives.classifyFileType(name),
+          size: 16,
+          className: 'dsfs-icon',
+        });
+      }
+      return h(fileGlyph, { className: 'dsfs-icon dsfs-muted-icon' });
+    }
+
+    function RefreshIcon() {
+      const Component = primitives.IconRefreshOutlineRegular;
+      return typeof Component === 'function' ? h(Component, {}) : h(refreshGlyph, {});
+    }
+
+    function CollapseIcon() {
+      const Component = primitives.IconChevronLeftOutlineRegular;
+      return typeof Component === 'function' ? h(Component, {}) : h(panelGlyph, { active: false });
+    }
+
+    function ExpandIcon() {
+      const Component = primitives.IconChevronRightOutlineRegular;
+      return typeof Component === 'function' ? h(Component, {}) : h(panelGlyph, { active: true });
+    }
+
+    /**
+     * A native 28px tool button. The host's Tooltip gives the same delayed
+     * bubble the Files tab's reload control uses; without primitives the plain
+     * `title` attribute keeps the label reachable.
+     */
+    function ToolButton({ label, onClick, children }) {
+      const Tooltip = primitives.Tooltip;
+      const button = h('button', {
+        type: 'button',
+        className: 'dsfs-tool',
+        'aria-label': label,
+        title: typeof Tooltip === 'function' ? undefined : label,
+        onClick,
+      }, children);
+      if (typeof Tooltip !== 'function') return button;
+      return h(Tooltip, { label, side: 'bottom', delayMs: 500 }, button);
+    }
+
+    /**
+     * The header path: directory dimmed, basename primary, clipped from the
+     * left so the tail stays visible, exactly like the native PathLabel. The
+     * local version is only used when primitives are unavailable.
+     */
+    function PathText({ path }) {
+      const Component = primitives.PathLabel;
+      if (typeof Component === 'function') return h(Component, { path, className: 'dsfs-path' });
+      return h(FallbackPathLabel, { path });
+    }
+
+    function FallbackPathLabel({ path }) {
+      const box = useRef(null);
+      const text = useRef(null);
+      useEffect(() => {
+        const outer = box.current;
+        const inner = text.current;
+        if (outer === null || inner === null) return;
+        const measure = () => {
+          outer.toggleAttribute('data-path-clipped', inner.offsetWidth > outer.clientWidth);
+        };
+        measure();
+        if (typeof ResizeObserver !== 'function') return;
+        const observer = new ResizeObserver(measure);
+        observer.observe(outer);
+        observer.observe(inner);
+        return () => observer.disconnect();
+      }, [path]);
+      const clean = String(path).replace(/[\\/]+$/, '');
+      const cut = Math.max(clean.lastIndexOf('/'), clean.lastIndexOf('\\'));
+      const directory = cut === -1 ? '' : clean.slice(0, cut + 1);
+      const name = cut === -1 ? clean : clean.slice(cut + 1);
+      return h('span', { ref: box, className: 'dsfs-path', title: path, 'data-path-label': '' },
+        h('span', { ref: text, className: 'dsfs-path-text' },
+          directory !== '' ? h('span', { className: 'dsfs-path-dir' }, directory) : null,
+          h('span', { className: 'dsfs-path-name' }, name)));
+    }
+
+    /** Directories first, then natural name order — the native Files tab's order. */
+    const byName = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+    function entryType(entry) {
+      return entry.type ?? entry.kind;
+    }
+
+    function orderEntries(entries) {
+      return [...entries].sort((left, right) => {
+        const group = Number(entryType(right) === 'directory') - Number(entryType(left) === 'directory');
+        return group !== 0 ? group : byName.compare(left.name, right.name);
+      });
     }
 
     function refreshGlyph({ size = 14, className }) {
@@ -179,45 +295,72 @@ window.__ModuleLoader__.load({
 
     // ----------------------------------------------------------------- style
 
+    /**
+     * The tab body's styles. Values mirror the built-in Files tab and the
+     * sidebar document preview (13 px content scale, 38 px headers, 28 px
+     * tools, 18 px nested-list indent, 5×10 px row padding), and every colour
+     * comes from the shared `--dsw-alias-*` design tokens so light/dark and
+     * future themes follow the host automatically.
+     */
     const CSS = [
-      '.dsfs-root{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;width:100%;color:inherit;font:inherit;font-size:12px;overflow:hidden;}',
+      '.dsfs-root{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;width:100%;color:var(--dsw-alias-label-primary,inherit);font:inherit;font-size:var(--dsh-content-font-size-secondary,13px);line-height:1.5;overflow:hidden;}',
       '.dsfs-main{flex:1;display:flex;min-height:0;min-width:0;width:100%;}',
       '.dsfs-pane{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;}',
-      '.dsfs-tree-pane{border-right:1px solid color-mix(in srgb,currentColor 12%,transparent);min-width:96px;max-width:72%;}',
-      '.dsfs-bar{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;flex:0 0 auto;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);}',
-      '.dsfs-bar-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.72;font-size:11px;letter-spacing:.02em;}',
-      '.dsfs-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:0;border-radius:5px;background:transparent;color:inherit;cursor:pointer;opacity:.72;flex:0 0 auto;}',
-      '.dsfs-icon-btn:hover{background:color-mix(in srgb,currentColor 10%,transparent);opacity:1;}',
-      '.dsfs-icon-btn[data-active="true"]{opacity:1;}',
-      '.dsfs-tree{flex:1;overflow:auto;padding:4px 0 10px;}',
-      '.dsfs-row{display:flex;align-items:center;gap:5px;height:24px;padding-right:8px;cursor:pointer;white-space:nowrap;user-select:none;border-radius:4px;margin:0 4px;}',
-      '.dsfs-row:hover{background:color-mix(in srgb,currentColor 8%,transparent);}',
-      '.dsfs-row[data-active="true"]{background:color-mix(in srgb,currentColor 15%,transparent);}',
-      '.dsfs-name{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto;}',
-      '.dsfs-spacer{width:12px;flex:0 0 auto;}',
-      '.dsfs-note{padding:4px 10px;opacity:.55;line-height:1.6;}',
-      '.dsfs-note[data-kind="error"]{color:#e06c75;opacity:.9;}',
-      '.dsfs-splitter{flex:0 0 5px;cursor:col-resize;background:transparent;position:relative;}',
-      '.dsfs-splitter:hover,.dsfs-splitter[data-dragging="true"]{background:color-mix(in srgb,currentColor 18%,transparent);}',
+      '.dsfs-tree-pane{min-width:96px;max-width:72%;}',
+      '.dsfs-bar{box-sizing:border-box;display:flex;align-items:center;gap:4px;height:38px;padding:0 6px 0 16px;flex:0 0 auto;border-bottom:.5px solid var(--dsw-alias-border-l3,color-mix(in srgb,currentColor 12%,transparent));}',
+      '.dsfs-path{display:flex;flex:1 1 auto;justify-content:flex-end;min-width:0;overflow:hidden;margin-right:12px;font-size:12px;white-space:nowrap;}',
+      '.dsfs-path[data-path-clipped]{mask-image:linear-gradient(to right,transparent,#000 28px);}',
+      '.dsfs-path-text{flex:none;margin-right:auto;}',
+      '.dsfs-path-dir{color:var(--dsw-alias-label-tertiary,inherit);}',
+      '.dsfs-path-name{color:var(--dsw-alias-label-primary,inherit);}',
+      '.dsfs-header-hint{flex:1 1 auto;min-width:0;margin-right:12px;color:var(--dsw-alias-label-tertiary,inherit);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+      '.dsfs-meta{flex:0 0 auto;color:var(--dsw-alias-label-tertiary,inherit);font-size:12px;white-space:nowrap;}',
+      '.dsfs-tool{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:6px;flex:0 0 auto;color:var(--dsw-alias-label-secondary,inherit);background:none;border:none;border-radius:var(--dsw-radius-sm,4px);cursor:pointer;line-height:1;}',
+      '.dsfs-tool svg{width:15px;height:15px;}',
+      '.dsfs-tool[aria-pressed="true"]{color:var(--dsw-alias-label-primary,inherit);background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 10%,transparent));}',
+      '.dsfs-tool:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,currentColor);outline-offset:-2px;}',
+      '@media (hover:hover){.dsfs-tool:hover{color:var(--dsw-alias-label-primary,inherit);background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 10%,transparent));}}',
+      '.dsfs-tree-body{flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable;margin-right:2px;padding:8px 0 8px 8px;--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l2);--dsh-scrollbar-thumb-hover:var(--dsw-alias-scrollbar-hover-l2);}',
+      '.dsfs-tree-body::-webkit-scrollbar-track{margin:2px;}',
+      '.dsfs-level{margin:0;padding:0;list-style:none;}',
+      '.dsfs-level .dsfs-level{padding-left:18px;}',
+      '.dsfs-item{margin:0;padding:0;}',
+      '.dsfs-row{box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;min-width:0;padding:5px 10px;color:inherit;font:inherit;text-align:left;background:none;border:0;border-radius:var(--dsw-radius-md,6px);cursor:pointer;white-space:nowrap;user-select:none;}',
+      '.dsfs-row[data-active="true"]{background:var(--dsw-alias-interactive-bg-active,color-mix(in srgb,currentColor 14%,transparent));}',
+      '@media (hover:hover){.dsfs-row:hover{background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 8%,transparent));}}',
+      '.dsfs-row:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,currentColor);outline-offset:-2px;}',
+      '.dsfs-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}',
+      '.dsfs-folder-icon,.dsfs-muted-icon{color:var(--dsw-alias-label-tertiary,inherit);}',
+      '.dsfs-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}',
+      '.dsfs-note{color:var(--dsw-alias-label-tertiary,inherit);margin:0;padding:3px 10px;font-size:12px;}',
+      '.dsfs-note[data-kind="error"]{color:var(--dsw-alias-state-error-primary,inherit);}',
+      '.dsfs-status{display:flex;flex-direction:column;padding:12px 10px;}',
+      '.dsfs-status-line{margin:0;color:var(--dsw-alias-label-secondary,inherit);font-size:var(--dsh-content-font-size-secondary,13px);line-height:1.6;}',
+      '.dsfs-splitter{position:relative;flex:0 0 5px;cursor:col-resize;background:transparent;}',
+      '.dsfs-splitter::after{content:"";position:absolute;top:0;bottom:0;left:2px;width:1px;background:var(--dsw-alias-border-l3,color-mix(in srgb,currentColor 12%,transparent));}',
+      '.dsfs-splitter[data-dragging="true"]::after{background:var(--dsw-alias-brand-primary,currentColor);}',
+      '@media (hover:hover){.dsfs-splitter:hover::after{background:var(--dsw-alias-brand-primary,currentColor);}}',
       '.dsfs-preview-pane{flex:1 1 auto;}',
-      '.dsfs-preview-body{flex:1;min-height:0;overflow:auto;}',
-      '.dsfs-pre{margin:0;padding:8px 10px 16px;font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.55;white-space:pre;tab-size:2;}',
-      '.dsfs-image-wrap{display:flex;align-items:center;justify-content:center;padding:12px;min-height:100%;box-sizing:border-box;}',
-      '.dsfs-image{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;background:color-mix(in srgb,currentColor 6%,transparent);}',
-      '.dsfs-empty{display:flex;align-items:center;justify-content:center;height:100%;padding:16px;opacity:.55;text-align:center;line-height:1.6;}',
-      '.dsfs-more{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid color-mix(in srgb,currentColor 10%,transparent);opacity:.8;}',
-      '.dsfs-text-btn{border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:4px 8px;border-radius:5px;}',
-      '.dsfs-text-btn:hover{background:color-mix(in srgb,currentColor 10%,transparent);}',
+      '.dsfs-preview-body{flex:1;min-height:0;overflow:auto;--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l2);--dsh-scrollbar-thumb-hover:var(--dsw-alias-scrollbar-hover-l2);}',
+      '.dsfs-preview-body::-webkit-scrollbar-track{margin:2px;}',
+      '.dsfs-pre{box-sizing:border-box;min-height:100%;margin:0;padding:8px 18px 16px;color:var(--dsw-alias-label-primary,inherit);font-family:var(--dsw-font-mono,ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace);font-size:var(--dsh-content-font-size-secondary,13px);line-height:1.6;white-space:pre;tab-size:2;}',
+      '.dsfs-image-wrap{display:flex;align-items:center;justify-content:center;min-height:100%;padding:12px;box-sizing:border-box;}',
+      '.dsfs-image{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--dsw-radius-sm,4px);background:var(--dsw-alias-bg-layer-1,color-mix(in srgb,currentColor 6%,transparent));}',
+      '.dsfs-empty{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 24px;color:var(--dsw-alias-label-secondary,inherit);font-size:var(--dsh-content-font-size-secondary,13px);text-align:center;line-height:1.6;}',
+      '.dsfs-more{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:6px 10px;border-top:.5px solid var(--dsw-alias-border-l3,color-mix(in srgb,currentColor 12%,transparent));color:var(--dsw-alias-label-tertiary,inherit);font-size:12px;}',
+      '.dsfs-text-btn{display:inline-flex;align-items:center;height:24px;padding:0 10px;color:var(--dsw-alias-label-primary,inherit);font:inherit;background:none;border:.5px solid var(--dsw-alias-border-l2,color-mix(in srgb,currentColor 16%,transparent));border-radius:var(--dsw-radius-sm,4px);cursor:pointer;}',
+      '@media (hover:hover){.dsfs-text-btn:hover{background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 10%,transparent));}}',
+      '.dsfs-text-btn:disabled{color:var(--dsw-alias-label-quaternary,var(--dsw-alias-label-tertiary,inherit));cursor:default;}',
       '.dsfs-title{display:inline-flex;align-items:center;gap:5px;min-width:0;}',
-      '.dsfs-hidden{display:none;}',
     ].join('');
 
     /** Styles for the always-visible header button (lives outside the tab body). */
     const GLOBAL_CSS = [
-      '.dsfs-header-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;opacity:.72;}',
-      '.dsfs-header-btn:hover{background:color-mix(in srgb,currentColor 12%,transparent);opacity:1;}',
-      '.dsfs-header-btn:active{background:color-mix(in srgb,currentColor 18%,transparent);}',
-      '.dsfs-header-btn:focus-visible{outline:2px solid color-mix(in srgb,currentColor 45%,transparent);outline-offset:1px;}',
+      '.dsfs-header-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:6px;flex:none;color:var(--dsw-alias-label-secondary,inherit);background:none;border:none;border-radius:var(--dsw-radius-sm,4px);cursor:pointer;line-height:1;}',
+      '.dsfs-header-btn svg{width:16px;height:16px;}',
+      '.dsfs-header-btn:active{background:var(--dsw-alias-interactive-bg-active,color-mix(in srgb,currentColor 18%,transparent));}',
+      '@media (hover:hover){.dsfs-header-btn:hover{color:var(--dsw-alias-label-primary,inherit);background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 12%,transparent));}}',
+      '.dsfs-header-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,currentColor);outline-offset:-2px;}',
     ].join('');
 
     /** Mount the stylesheet once per body instance; dropping the node removes it. */
@@ -356,62 +499,65 @@ window.__ModuleLoader__.load({
       return { levels, expanded, toggleDir, refresh };
     }
 
+    /**
+     * One directory level as the native tree renders it: a `ul` of `li`
+     * entries, each row a full-width button, nested levels indented by the
+     * stylesheet (18 px). Directories come before files and are sorted the
+     * same way the built-in Files tab sorts them.
+     */
     function TreeLevel({ path, depth, levels, expanded, activePath, onToggle, onPick, t }) {
       const level = levels[path];
       if (level === undefined) return null;
+      const items = [];
+      const list = (children) => h('ul', {
+        className: depth === 0 ? 'dsfs-level dsfs-level-root' : 'dsfs-level',
+      }, children);
       if (level.status === 'loading' && level.entries.length === 0) {
-        return h('div', { className: 'dsfs-note' }, t('tree.loading'));
+        return list([h('li', { key: path + '/loading', className: 'dsfs-note' }, t('tree.loading'))]);
       }
       if (level.status === 'error' && level.entries.length === 0) {
-        return h('div', { className: 'dsfs-note', 'data-kind': 'error' }, t('tree.failed') + (level.code ? ' (' + level.code + ')' : ''));
+        return list([h('li', { key: path + '/failed', className: 'dsfs-note', 'data-kind': 'error' },
+          t('tree.failed') + (level.code ? ' (' + level.code + ')' : ''))]);
       }
-      const rows = [];
       if (level.entries.length === 0 && level.status === 'ready') {
-        rows.push(h('div', { key: path + '/empty', className: 'dsfs-note', style: { paddingLeft: 10 + depth * 12 } }, t('tree.empty')));
+        items.push(h('li', { key: path + '/empty', className: 'dsfs-note' }, t('tree.empty')));
       }
-      for (const entry of level.entries) {
+      for (const entry of orderEntries(level.entries)) {
         const name = entry.name;
         const childPath = joinPath(path, name);
         // Wire shape: `type` is 'file' | 'directory' | 'other'; `kind` is kept
         // as a fallback so an older Host shape cannot blank the tree.
-        const isDir = (entry.type ?? entry.kind) === 'directory';
+        const isDir = entryType(entry) === 'directory';
         const isOpen = isDir && expanded.has(childPath);
-        rows.push(h('div', {
-          key: childPath,
-          className: 'dsfs-row',
-          role: 'treeitem',
-          'aria-expanded': isDir ? isOpen : undefined,
-          'aria-label': name,
-          'data-active': !isDir && activePath === childPath ? 'true' : 'false',
-          'data-directory': isDir ? 'true' : 'false',
-          title: childPath,
-          style: { paddingLeft: 6 + depth * 12 },
-          onClick: () => { if (isDir) onToggle(childPath); else onPick(childPath, name); },
-        },
-          isDir
-            ? h(chevronGlyph, { open: isOpen })
-            : h('span', { className: 'dsfs-spacer' }),
-          isDir ? h(folderGlyph, { open: isOpen }) : h(fileGlyph, {}),
-          h('span', { className: 'dsfs-name' }, name),
-        ));
-        if (isDir && isOpen) {
-          rows.push(h(TreeLevel, {
-            key: childPath + '/level',
-            path: childPath,
-            depth: depth + 1,
-            levels,
-            expanded,
-            activePath,
-            onToggle,
-            onPick,
-            t,
-          }));
-        }
+        items.push(h('li', { key: childPath, className: 'dsfs-item' },
+          h('button', {
+            type: 'button',
+            className: 'dsfs-row',
+            'aria-expanded': isDir ? isOpen : undefined,
+            'data-active': !isDir && activePath === childPath ? 'true' : 'false',
+            'data-directory': isDir ? 'true' : 'false',
+            onClick: () => { if (isDir) onToggle(childPath); else onPick(childPath, name); },
+          },
+            isDir ? h(FolderIcon, { open: isOpen }) : h(FileIcon, { name }),
+            h('span', { className: 'dsfs-name' }, name)),
+          isDir && isOpen
+            ? h(TreeLevel, {
+              key: childPath + '/level',
+              path: childPath,
+              depth: depth + 1,
+              levels,
+              expanded,
+              activePath,
+              onToggle,
+              onPick,
+              t,
+            })
+            : null));
       }
       if (level.truncated) {
-        rows.push(h('div', { key: path + '/truncated', className: 'dsfs-note', style: { paddingLeft: 10 + depth * 12 } }, t('tree.truncated')));
+        items.push(h('li', { key: path + '/truncated', className: 'dsfs-note' }, t('tree.truncated')));
       }
-      return h('div', { role: 'group' }, rows);
+      return list(items);
     }
 
     // ----------------------------------------------------------------- preview
@@ -543,7 +689,7 @@ window.__ModuleLoader__.load({
           h('pre', { className: 'dsfs-pre', 'data-split-files-text': '' }, state.text)),
         h('div', { className: 'dsfs-more' },
           state.eof
-            ? h('span', { style: { opacity: 0.55 } }, t('preview.eof'))
+            ? h('span', null, t('preview.eof'))
             : h('button', {
               type: 'button',
               className: 'dsfs-text-btn',
@@ -621,16 +767,12 @@ window.__ModuleLoader__.load({
         style: treeHidden ? { display: 'none' } : { flex: '0 0 ' + ratio + '%', width: ratio + '%' },
       },
         h('div', { className: 'dsfs-bar' },
-          h('button', {
-            type: 'button', className: 'dsfs-icon-btn', title: t('tree.hide'), 'aria-label': t('tree.hide'),
-            onClick: toggleTree,
-          }, h(panelGlyph, { active: false })),
-          h('span', { className: 'dsfs-bar-label', title: hasRoot ? cwd : '' }, t('tree.title')),
-          h('button', {
-            type: 'button', className: 'dsfs-icon-btn', title: t('tree.refresh'), 'aria-label': t('tree.refresh'),
-            onClick: tree.refresh,
-          }, h(refreshGlyph, {}))),
-        h('div', { className: 'dsfs-tree', role: 'tree' },
+          hasRoot
+            ? h(PathText, { path: cwd })
+            : h('span', { className: 'dsfs-header-hint' }, t('tree.title')),
+          h(ToolButton, { label: t('tree.hide'), onClick: toggleTree }, h(CollapseIcon, {})),
+          h(ToolButton, { label: t('tree.refresh'), onClick: tree.refresh }, h(RefreshIcon, {}))),
+        h('div', { className: 'dsfs-tree-body' },
           hasRoot
             ? h(TreeLevel, {
               path: cwd,
@@ -642,20 +784,19 @@ window.__ModuleLoader__.load({
               onPick: pickFile,
               t,
             })
-            : h('div', { className: 'dsfs-note' }, t('tree.noWorkspace'))));
+            : h('div', { className: 'dsfs-status' },
+              h('p', { className: 'dsfs-status-line' }, t('tree.noWorkspace')))));
 
       const previewPane = h('div', { className: 'dsfs-pane dsfs-preview-pane' },
         h('div', { className: 'dsfs-bar' },
           treeHidden
-            ? h('button', {
-              type: 'button', className: 'dsfs-icon-btn', title: t('tree.show'), 'aria-label': t('tree.show'),
-              onClick: toggleTree,
-            }, h(panelGlyph, { active: true }))
+            ? h(ToolButton, { label: t('tree.show'), onClick: toggleTree }, h(ExpandIcon, {}))
             : null,
-          h('span', { className: 'dsfs-bar-label', title: preview.state.path ?? '' },
-            preview.state.name ?? (hasRoot ? baseName(cwd) : '')),
+          preview.state.path !== undefined
+            ? h(PathText, { path: preview.state.path })
+            : h('span', { className: 'dsfs-header-hint' }, hasRoot ? baseName(cwd) : t('preview.empty')),
           typeof preview.state.bytes === 'number'
-            ? h('span', { style: { opacity: 0.5, fontSize: 11 } }, formatBytes(preview.state.bytes))
+            ? h('span', { className: 'dsfs-meta' }, formatBytes(preview.state.bytes))
             : null),
         h(PreviewPane, { state: preview.state, t, onLoadMore: preview.loadMore }));
 
@@ -683,7 +824,7 @@ window.__ModuleLoader__.load({
     function Title({ useTabInfo }) {
       const { tab } = useTabInfo();
       return h('span', { className: 'dsfs-title' },
-        h(splitGlyph, { size: 14 }),
+        h(splitGlyph, { size: 16 }),
         h('span', null, tab?.title ?? ''));
     }
 

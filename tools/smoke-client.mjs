@@ -21,8 +21,20 @@ const React = {
   useSyncExternalStore: (_sub, get) => get(),
 };
 
+const primitives = {
+  PathLabel: ({ path, className }) => React.createElement('span', { className, title: path }, path),
+  FileTypeIcon: ({ kind, className }) => React.createElement('span', { className, 'data-kind': kind }),
+  classifyFileType: (name) => (/\.md$/i.test(name) ? 'markdown' : 'text'),
+  IconFolderOpenRegular: ({ className }) => React.createElement('span', { className }),
+  IconFolderCloseRegular: ({ className }) => React.createElement('span', { className }),
+  IconRefreshOutlineRegular: () => React.createElement('span', null),
+  IconChevronLeftOutlineRegular: () => React.createElement('span', null),
+  IconChevronRightOutlineRegular: () => React.createElement('span', null),
+};
+
 const requireMock = (spec) => {
   if (spec === 'react') return React;
+  if (spec === '@deepseek-ai/dsh-client-ui-primitives') return primitives;
   throw new Error(`smoke: unexpected require("${spec}")`);
 };
 

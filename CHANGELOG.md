@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The split tab now follows the native sidebar tab's visual language: the
+  built-in Files tab's 13 px content scale, 38 px headers, 28 px tool buttons,
+  5×10 px row padding, 18 px nested indentation, DSH design tokens, the shared
+  `PathLabel`, and the native folder and per-extension file-type icons (with
+  built-in glyph fallbacks if the host does not expose them). Directories are
+  listed before files, as in the native Files tab, and the tree uses the
+  open/closed folder icons instead of separate chevrons.
+
 ## [0.1.1] - 2026-10-28
 
 ### Changed
