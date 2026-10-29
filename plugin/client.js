@@ -862,12 +862,35 @@ window.__ModuleLoader__.load({
         'aria-label': t('button.open'),
         'data-split-files-open': '',
         onClick: () => {
-          // The navigation service acts on the session's ADOPTED store; a
-          // collapsed column may not have adopted it yet, so opening retries
-          // briefly while the panel renders.
+          // Open through the captured pane target: the host applies the same
+          // rule as a guide card or its own open-file shortcut, so an active
+          // "Start" (guide) tab gives way to the page it opens, and a collapsed
+          // column expands inside that same layout step.
+          //
+          // Never expand first: the host seeds the default guide page when an
+          // empty column expands, so a pre-expansion would leave "Start" beside
+          // this tab. An open into a fresh surface must show only what opened.
+          //
+          // The navigation service acts on the Session's ADOPTED store; a
+          // just-opened Session may not have one yet, so retry briefly while
+          // its view mounts and adopts the store.
           const attemptOpen = (left) => {
             try {
-              ctx.sidebarRight.openTab(KIND);
+              const target = typeof ctx.sidebarRight.commandTarget === 'function'
+                ? ctx.sidebarRight.commandTarget()
+                : undefined;
+              if (target !== undefined && typeof ctx.sidebarRight.openTabFromTarget === 'function') {
+                ctx.sidebarRight.openTabFromTarget(KIND, target);
+                return;
+              }
+              // Public fallback: an active guide gives way to the page it opens,
+              // the same rule the host's own guide entries apply.
+              const activeTab = typeof ctx.sidebarRight.active === 'function'
+                ? ctx.sidebarRight.active()
+                : undefined;
+              ctx.sidebarRight.openTab(KIND, activeTab !== undefined && activeTab.kind === 'guide'
+                ? { replaceTab: activeTab.id }
+                : {});
             } catch (error) {
               if (left > 0) {
                 window.setTimeout(() => attemptOpen(left - 1), 180);
@@ -876,26 +899,7 @@ window.__ModuleLoader__.load({
               console.error('[split-files] open tab failed:', error);
             }
           };
-          let expanded = false;
-          try {
-            expanded = ctx.sidebarRight.isExpanded() === true;
-          } catch {
-            expanded = false;
-          }
-          if (expanded) {
-            attemptOpen(0);
-            return;
-          }
-          // Collapsed: expand first, then open. Both calls go through the
-          // session's adopted store, so the open below retries while the panel
-          // renders and adopts it. (No reading of the host's own expand
-          // control: that would couple this bundle to a host-internal DOM.)
-          try {
-            ctx.sidebarRight.toggleExpanded();
-          } catch (error) {
-            console.error('[split-files] expand failed:', error);
-          }
-          window.setTimeout(() => attemptOpen(6), 240);
+          attemptOpen(8);
         },
       }, h(splitGlyph, { size: 16 }));
 

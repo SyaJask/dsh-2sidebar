@@ -77,6 +77,16 @@ console.log('inject:', exportsObject.inject.join(', '));
 const effects = [];
 const registrationsMade = { locale: [], tabTypes: [], slots: [] };
 
+const navigation = {
+  openTab: [],
+  openTabFromTarget: [],
+  commandTarget: 0,
+  isExpanded: 0,
+  toggleExpanded: 0,
+  target: { sessionId: 's1', paneId: 'p1', host: 'dock' },
+  activeTab: undefined,
+};
+
 const ctx = {
   effect: (fn, label) => {
     const cleanup = fn();
@@ -115,7 +125,12 @@ const ctx = {
     },
   },
   sidebarRight: {
-    openTab: () => {},
+    openTab: (kind, options) => { navigation.openTab.push({ kind, options }); },
+    commandTarget: () => { navigation.commandTarget += 1; return navigation.target; },
+    openTabFromTarget: (kind, target) => { navigation.openTabFromTarget.push({ kind, target }); },
+    active: () => navigation.activeTab,
+    isExpanded: () => { navigation.isExpanded += 1; return false; },
+    toggleExpanded: () => { navigation.toggleExpanded += 1; },
   },
   remote: {
     workspaceFiles: {
@@ -154,10 +169,35 @@ const headerSlot = registrationsMade.slots.find((s) => s.options.name === 'conve
 if (headerSlot !== undefined) {
   if (headerSlot.options.id !== 'split-files:header-button') problems.push('header button id is wrong');
   if (typeof headerSlot.component !== 'function') problems.push('header button component missing');
+  let headerButton;
   try {
-    headerSlot.component({});
+    headerButton = headerSlot.component({});
   } catch (error) {
     problems.push('header button render threw: ' + error.message);
+  }
+  if (headerButton === undefined || typeof headerButton.props?.onClick !== 'function') {
+    problems.push('header button has no click handler');
+  } else {
+    headerButton.props.onClick();
+    if (navigation.openTabFromTarget.length !== 1) problems.push('header button did not open through the captured pane');
+    if (navigation.openTabFromTarget[0]?.kind !== 'split-files') problems.push('header button opened the wrong kind');
+    if (navigation.openTab.length !== 0) problems.push('header button opened without a captured target');
+    if (navigation.toggleExpanded !== 0) problems.push('header button expanded before opening (the guide page would be seeded)');
+    if (navigation.isExpanded !== 0) problems.push('header button still reads the expansion state');
+    // Public fallback without a captured target: a plain open.
+    navigation.target = undefined;
+    headerButton.props.onClick();
+    if (navigation.openTab.length !== 1) problems.push('header button fallback openTab is broken');
+    else {
+      if (navigation.openTab[0].kind !== 'split-files') problems.push('header button fallback opened the wrong kind');
+      if (navigation.openTab[0].options?.replaceTab !== undefined) problems.push('header button replaced a tab without a guide');
+    }
+    // Public fallback with the guide active: the guide gives way to the page.
+    navigation.activeTab = { id: 'guide-1', kind: 'guide' };
+    headerButton.props.onClick();
+    if (navigation.openTab.length !== 2 || navigation.openTab[1].options?.replaceTab !== 'guide-1') {
+      problems.push('header button did not replace the active guide tab');
+    }
   }
 }
 if (appendedStyles.length !== 1) problems.push(`expected 1 global style element, got ${appendedStyles.length}`);

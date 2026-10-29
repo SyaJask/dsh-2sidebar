@@ -16,6 +16,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   listed before files, as in the native Files tab, and the tree uses the
   open/closed folder icons instead of separate chevrons.
 
+### Fixed
+
+- Opening the split tab from the session header no longer expands an empty
+  right sidebar first, so a fresh or fully closed session shows only the split
+  tab instead of the default "Start" guide tab beside it. When the Start tab is
+  active, it now gives way to the split tab like the host's own guide entries.
+
 ## [0.1.1] - 2026-10-28
 
 ### Changed
