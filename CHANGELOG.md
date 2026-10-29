@@ -11,10 +11,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The split tab now follows the native sidebar tab's visual language: the
   built-in Files tab's 13 px content scale, 38 px headers, 28 px tool buttons,
   5×10 px row padding, 18 px nested indentation, DSH design tokens, the shared
-  `PathLabel`, and the native folder and per-extension file-type icons (with
-  built-in glyph fallbacks if the host does not expose them). Directories are
-  listed before files, as in the native Files tab, and the tree uses the
-  open/closed folder icons instead of separate chevrons.
+  `PathLabel`, and the native folder, per-extension file-type and compare-split
+  icons. Directories are listed before files, as in the native Files tab, and
+  the tree uses the open/closed folder icons instead of separate chevrons.
+- The plugin no longer carries local copies of `PathLabel` or of the folder,
+  file, refresh and panel glyphs; DSH's shared client primitives are now a
+  required baseline module (`PLATFORM_MODULES` on supported releases).
 
 ### Fixed
 

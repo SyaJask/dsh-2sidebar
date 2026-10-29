@@ -17,19 +17,11 @@ window.__ModuleLoader__.load({
 
     /**
      * DSH's shared client primitives: the icon set, `PathLabel`, and the
-     * file-type icons the native sidebar uses. They come from the shell's
-     * frozen module table, not from this package, so no install is needed; a
-     * host that does not seed them still gets the complete tree through the
-     * local glyph fallbacks below.
+     * file-type icons the native sidebar uses. They are a baseline module of
+     * the shell (`PLATFORM_MODULES`), not an optional dependency, so the plugin
+     * carries no local copies of that artwork.
      */
-    const primitives = (() => {
-      try {
-        return require('@deepseek-ai/dsh-client-ui-primitives') ?? {};
-      } catch (error) {
-        console.warn('[split-files] UI primitives unavailable; using built-in glyphs', error);
-        return {};
-      }
-    })();
+    const primitives = require('@deepseek-ai/dsh-client-ui-primitives');
 
     /** Cordis services this Client fiber needs. `sidebarRight` is what the header button's open call runs through. */
     const inject = ['slots', 'sessions', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles'];
@@ -122,130 +114,45 @@ window.__ModuleLoader__.load({
 
     // ----------------------------------------------------------------- icons
 
-    function splitGlyph({ size = 16, className }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className, style: { flex: '0 0 auto' },
-      },
-        h('rect', { x: 1.2, y: 2.2, width: 13.6, height: 11.6, rx: 2, stroke: 'currentColor', strokeWidth: 1.2 }),
-        h('path', { d: 'M6.4 2.4v11.2', stroke: 'currentColor', strokeWidth: 1.2 }),
-        h('path', { d: 'M3 5.2h1.6M3 8h1.6M3 10.8h1.6', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }));
-    }
-
-    function folderGlyph({ size = 16, className, open = false }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className, style: { flex: '0 0 auto' },
-      }, h('path', {
-        d: open
-          ? 'M1.7 4h4.2l1.2 1.4h7.2v7.2a1 1 0 0 1-1 1H2.7a1 1 0 0 1-1-1V4z'
-          : 'M1.7 3.2h4.2l1.2 1.4h7.2v8a1 1 0 0 1-1 1H2.7a1 1 0 0 1-1-1V3.2z',
-        stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round', fill: 'none',
-      }));
-    }
-
-    function fileGlyph({ size = 16, className }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className, style: { flex: '0 0 auto', opacity: 0.75 },
-      }, h('path', {
-        d: 'M3.4 2.2h5.4l3.8 3.8v7.8a1 1 0 0 1-1 1H3.4a1 1 0 0 1-1-1V3.2a1 1 0 0 1 1-1z',
-        stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round', fill: 'none',
-      }), h('path', { d: 'M8.6 2.4v3.6h3.6', stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round', fill: 'none' }));
-    }
-
     /**
-     * Icon adapters: the native icon set when the host seeds it, the local
-     * glyphs otherwise. The tree therefore matches the built-in Files tab
-     * without depending on a primitives export surviving a DSH upgrade.
+     * The host's icon set, so the plugin draws the same geometry as the
+     * built-in Files tab. These are baseline primitives, not optional imports.
      */
     function FolderIcon({ open = false }) {
       const Component = open ? primitives.IconFolderOpenRegular : primitives.IconFolderCloseRegular;
-      if (typeof Component === 'function') return h(Component, { className: 'dsfs-icon dsfs-folder-icon' });
-      return h(folderGlyph, { open, className: 'dsfs-icon dsfs-folder-icon' });
+      return h(Component, { className: 'dsfs-icon dsfs-folder-icon' });
     }
 
     /** `FileTypeIcon` renders the per-extension badge (MD, JS, …) the Files tab uses. */
     function FileIcon({ name }) {
-      if (typeof primitives.FileTypeIcon === 'function' && typeof primitives.classifyFileType === 'function') {
-        return h(primitives.FileTypeIcon, {
-          kind: primitives.classifyFileType(name),
-          size: 16,
-          className: 'dsfs-icon',
-        });
-      }
-      return h(fileGlyph, { className: 'dsfs-icon dsfs-muted-icon' });
+      return h(primitives.FileTypeIcon, {
+        kind: primitives.classifyFileType(name),
+        size: 16,
+        className: 'dsfs-icon',
+      });
     }
 
     function RefreshIcon() {
-      const Component = primitives.IconRefreshOutlineRegular;
-      return typeof Component === 'function' ? h(Component, {}) : h(refreshGlyph, {});
+      return h(primitives.IconRefreshOutlineRegular, {});
     }
 
     function CollapseIcon() {
-      const Component = primitives.IconChevronLeftOutlineRegular;
-      return typeof Component === 'function' ? h(Component, {}) : h(panelGlyph, { active: false });
+      return h(primitives.IconChevronLeftOutlineRegular, {});
     }
 
     function ExpandIcon() {
-      const Component = primitives.IconChevronRightOutlineRegular;
-      return typeof Component === 'function' ? h(Component, {}) : h(panelGlyph, { active: true });
+      return h(primitives.IconChevronRightOutlineRegular, {});
     }
 
-    /**
-     * A native 28px tool button. The host's Tooltip gives the same delayed
-     * bubble the Files tab's reload control uses; without primitives the plain
-     * `title` attribute keeps the label reachable.
-     */
+    /** A native 28px tool button with the host's delayed tooltip. */
     function ToolButton({ label, onClick, children }) {
-      const Tooltip = primitives.Tooltip;
-      const button = h('button', {
-        type: 'button',
-        className: 'dsfs-tool',
-        'aria-label': label,
-        title: typeof Tooltip === 'function' ? undefined : label,
-        onClick,
-      }, children);
-      if (typeof Tooltip !== 'function') return button;
-      return h(Tooltip, { label, side: 'bottom', delayMs: 500 }, button);
-    }
-
-    /**
-     * The header path: directory dimmed, basename primary, clipped from the
-     * left so the tail stays visible, exactly like the native PathLabel. The
-     * local version is only used when primitives are unavailable.
-     */
-    function PathText({ path }) {
-      const Component = primitives.PathLabel;
-      if (typeof Component === 'function') return h(Component, { path, className: 'dsfs-path' });
-      return h(FallbackPathLabel, { path });
-    }
-
-    function FallbackPathLabel({ path }) {
-      const box = useRef(null);
-      const text = useRef(null);
-      useEffect(() => {
-        const outer = box.current;
-        const inner = text.current;
-        if (outer === null || inner === null) return;
-        const measure = () => {
-          outer.toggleAttribute('data-path-clipped', inner.offsetWidth > outer.clientWidth);
-        };
-        measure();
-        if (typeof ResizeObserver !== 'function') return;
-        const observer = new ResizeObserver(measure);
-        observer.observe(outer);
-        observer.observe(inner);
-        return () => observer.disconnect();
-      }, [path]);
-      const clean = String(path).replace(/[\\/]+$/, '');
-      const cut = Math.max(clean.lastIndexOf('/'), clean.lastIndexOf('\\'));
-      const directory = cut === -1 ? '' : clean.slice(0, cut + 1);
-      const name = cut === -1 ? clean : clean.slice(cut + 1);
-      return h('span', { ref: box, className: 'dsfs-path', title: path, 'data-path-label': '' },
-        h('span', { ref: text, className: 'dsfs-path-text' },
-          directory !== '' ? h('span', { className: 'dsfs-path-dir' }, directory) : null,
-          h('span', { className: 'dsfs-path-name' }, name)));
+      return h(primitives.Tooltip, { label, side: 'bottom', delayMs: 500 },
+        h('button', {
+          type: 'button',
+          className: 'dsfs-tool',
+          'aria-label': label,
+          onClick,
+        }, children));
     }
 
     /** Directories first, then natural name order — the native Files tab's order. */
@@ -260,37 +167,6 @@ window.__ModuleLoader__.load({
         const group = Number(entryType(right) === 'directory') - Number(entryType(left) === 'directory');
         return group !== 0 ? group : byName.compare(left.name, right.name);
       });
-    }
-
-    function refreshGlyph({ size = 14, className }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className, style: { flex: '0 0 auto' },
-      }, h('path', {
-        d: 'M13 8a5 5 0 1 1-1.5-3.55M13 2.6v3.2H9.8',
-        stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none',
-      }));
-    }
-
-    function panelGlyph({ size = 14, className, active = false }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
-        'aria-hidden': true, className, style: { flex: '0 0 auto', opacity: active ? 1 : 0.7 },
-      },
-        h('rect', { x: 1.6, y: 2.4, width: 12.8, height: 11.2, rx: 1.6, stroke: 'currentColor', strokeWidth: 1.2 }),
-        h('path', { d: active ? 'M1.8 3.7h3.6v8.6H1.8z' : 'M5.4 2.6v10.8', fill: active ? 'currentColor' : 'none', stroke: 'currentColor', strokeWidth: 1.2 }));
-    }
-
-    /** The guide card's artwork: the component form the guide host calls. */
-    function SplitArtwork({ size = 26, className }) {
-      return h('svg', {
-        width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
-        className, 'aria-hidden': true,
-      },
-        h('rect', { x: 2.4, y: 3.4, width: 19.2, height: 17.2, rx: 3, stroke: 'currentColor', strokeWidth: 1.6 }),
-        h('path', { d: 'M9.4 3.6v16.8', stroke: 'currentColor', strokeWidth: 1.6 }),
-        h('path', { d: 'M4.6 7.6h2.4M4.6 11.2h2.4M4.6 14.8h2.4', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', opacity: 0.85 }),
-        h('path', { d: 'M12.4 7.6h6.2M12.4 11.2h4.4M12.4 14.8h5.6', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', opacity: 0.55 }));
     }
 
     // ----------------------------------------------------------------- style
@@ -308,11 +184,7 @@ window.__ModuleLoader__.load({
       '.dsfs-pane{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;}',
       '.dsfs-tree-pane{min-width:96px;max-width:72%;}',
       '.dsfs-bar{box-sizing:border-box;display:flex;align-items:center;gap:4px;height:38px;padding:0 6px 0 16px;flex:0 0 auto;border-bottom:.5px solid var(--dsw-alias-border-l3,color-mix(in srgb,currentColor 12%,transparent));}',
-      '.dsfs-path{display:flex;flex:1 1 auto;justify-content:flex-end;min-width:0;overflow:hidden;margin-right:12px;font-size:12px;white-space:nowrap;}',
-      '.dsfs-path[data-path-clipped]{mask-image:linear-gradient(to right,transparent,#000 28px);}',
-      '.dsfs-path-text{flex:none;margin-right:auto;}',
-      '.dsfs-path-dir{color:var(--dsw-alias-label-tertiary,inherit);}',
-      '.dsfs-path-name{color:var(--dsw-alias-label-primary,inherit);}',
+      '.dsfs-path{margin-right:12px;}',
       '.dsfs-header-hint{flex:1 1 auto;min-width:0;margin-right:12px;color:var(--dsw-alias-label-tertiary,inherit);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
       '.dsfs-meta{flex:0 0 auto;color:var(--dsw-alias-label-tertiary,inherit);font-size:12px;white-space:nowrap;}',
       '.dsfs-tool{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:6px;flex:0 0 auto;color:var(--dsw-alias-label-secondary,inherit);background:none;border:none;border-radius:var(--dsw-radius-sm,4px);cursor:pointer;line-height:1;}',
@@ -330,7 +202,7 @@ window.__ModuleLoader__.load({
       '@media (hover:hover){.dsfs-row:hover{background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 8%,transparent));}}',
       '.dsfs-row:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,currentColor);outline-offset:-2px;}',
       '.dsfs-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}',
-      '.dsfs-folder-icon,.dsfs-muted-icon{color:var(--dsw-alias-label-tertiary,inherit);}',
+      '.dsfs-folder-icon{color:var(--dsw-alias-label-tertiary,inherit);}',
       '.dsfs-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}',
       '.dsfs-note{color:var(--dsw-alias-label-tertiary,inherit);margin:0;padding:3px 10px;font-size:12px;}',
       '.dsfs-note[data-kind="error"]{color:var(--dsw-alias-state-error-primary,inherit);}',
@@ -768,7 +640,7 @@ window.__ModuleLoader__.load({
       },
         h('div', { className: 'dsfs-bar' },
           hasRoot
-            ? h(PathText, { path: cwd })
+            ? h(primitives.PathLabel, { path: cwd, className: 'dsfs-path' })
             : h('span', { className: 'dsfs-header-hint' }, t('tree.title')),
           h(ToolButton, { label: t('tree.hide'), onClick: toggleTree }, h(CollapseIcon, {})),
           h(ToolButton, { label: t('tree.refresh'), onClick: tree.refresh }, h(RefreshIcon, {}))),
@@ -793,7 +665,7 @@ window.__ModuleLoader__.load({
             ? h(ToolButton, { label: t('tree.show'), onClick: toggleTree }, h(ExpandIcon, {}))
             : null,
           preview.state.path !== undefined
-            ? h(PathText, { path: preview.state.path })
+            ? h(primitives.PathLabel, { path: preview.state.path, className: 'dsfs-path' })
             : h('span', { className: 'dsfs-header-hint' }, hasRoot ? baseName(cwd) : t('preview.empty')),
           typeof preview.state.bytes === 'number'
             ? h('span', { className: 'dsfs-meta' }, formatBytes(preview.state.bytes))
@@ -818,13 +690,13 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * The tab chip's title slot: the split glyph plus the title captured when
-     * the tab was opened (the framework's own `tab.title`).
+     * The tab chip's title slot: the native compare-split icon plus the title
+     * captured when the tab was opened (the framework's own `tab.title`).
      */
     function Title({ useTabInfo }) {
       const { tab } = useTabInfo();
       return h('span', { className: 'dsfs-title' },
-        h(splitGlyph, { size: 16 }),
+        h(primitives.IconCompareSplitOutlineRegular, { size: 16 }),
         h('span', null, tab?.title ?? ''));
     }
 
@@ -901,7 +773,7 @@ window.__ModuleLoader__.load({
           };
           attemptOpen(8);
         },
-      }, h(splitGlyph, { size: 16 }));
+      }, h(primitives.IconCompareSplitOutlineRegular, { size: 16 }));
 
       ctx.effect(() => ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
         name: 'conversation.session.header.utilities',
@@ -922,7 +794,7 @@ window.__ModuleLoader__.load({
           order: 25,
           title: () => t('guide.title'),
           description: () => t('guide.description'),
-          icon: SplitArtwork,
+          icon: primitives.IconCompareSplitOutlineRegular,
         }],
       }), 'split-files: tab type');
 

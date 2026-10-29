@@ -30,6 +30,8 @@ const primitives = {
   IconRefreshOutlineRegular: () => React.createElement('span', null),
   IconChevronLeftOutlineRegular: () => React.createElement('span', null),
   IconChevronRightOutlineRegular: () => React.createElement('span', null),
+  IconCompareSplitOutlineRegular: (props) => React.createElement('span', { className: props.className }),
+  Tooltip: (props) => React.createElement('span', { 'data-tooltip': props.label }, props.children),
 };
 
 const requireMock = (spec) => {

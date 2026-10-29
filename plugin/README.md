@@ -42,7 +42,7 @@ Open the tab from the split icon in the session header, from the right sidebar s
 
 ## Compatibility
 
-Tested with DSH Desktop `0.2.1-rc.3`. The bundle is client-only and platform-independent, but DSH's extension APIs are still moving; after a DSH upgrade, check the console for `[split-files]` errors and open an issue with the version.
+Tested with DSH Desktop `0.2.1-rc.3`. The bundle relies on DSH's shared client primitives (`@deepseek-ai/dsh-client-ui-primitives`, a baseline module of the web shell) for its path label and icons instead of bundling copies. It is client-only and platform-independent, but DSH's extension APIs are still moving; after a DSH upgrade, check the console for `[split-files]` errors and open an issue with the version.
 
 ## Known limitations
 

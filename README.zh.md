@@ -102,7 +102,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 ## 兼容性
 
 - **已验证**：DSH Desktop `0.2.1-rc.3`，Windows。
-- **预期可用**：提供相同客户端服务（`slots`、`sidebarRightTabs`、`sidebarRight`、`remote.workspaceFiles`）的其它 DSH Desktop 版本，以及 macOS/Linux 构建；bundle 本身与平台无关。
+- **预期可用**：提供相同客户端服务（`slots`、`sidebarRightTabs`、`sidebarRight`、`remote.workspaceFiles`）和 shell 基线客户端 primitives（`@deepseek-ai/dsh-client-ui-primitives`）的其它 DSH Desktop 版本，以及 macOS/Linux 构建；bundle 本身与平台无关。
 - **安装脚本仅支持 Windows**（`.ps1`）；其它平台请用界面或 `dsh plugin`。
 - DSH 处于开发者预览阶段，扩展 API 可能随时变动。升级 DSH 后如果插件不再加载，请带上 DSH 版本和浏览器控制台报错开 issue。
 

@@ -102,7 +102,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 ## Compatibility
 
 - **Tested**: DSH Desktop `0.2.1-rc.3` on Windows.
-- **Expected to work**: other DSH Desktop versions with the same client services (`slots`, `sidebarRightTabs`, `sidebarRight`, `remote.workspaceFiles`), and the macOS/Linux builds; the bundle itself is platform-independent.
+- **Expected to work**: other DSH Desktop versions with the same client services (`slots`, `sidebarRightTabs`, `sidebarRight`, `remote.workspaceFiles`) and the shell's baseline client primitives (`@deepseek-ai/dsh-client-ui-primitives`), and the macOS/Linux builds; the bundle itself is platform-independent.
 - **Install scripts are Windows-only** (`.ps1`); use the GUI or `dsh plugin` on other platforms.
 - DSH is in developer preview and its extension APIs can change without notice. If the plugin stops loading after a DSH upgrade, open an issue with the DSH version and the browser console error.
 
