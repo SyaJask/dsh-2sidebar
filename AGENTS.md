@@ -18,7 +18,7 @@
 
 ## 不能做什么
 
-- **不要重新引入** `plugin/`、`packages/`、`notes/`、`tools/`、`docs/releases/`；不要保存运行文件的第二份副本。做减法，不做加法。
+- **不要重新引入** `plugin/`、`packages/`、`notes/`、`tools/`、`docs/releases/`（旧目录；发布说明统一放 `docs/release-notes/`）；不要保存运行文件的第二份副本。做减法，不做加法。
 - **不要加构建链**（TypeScript、打包器、生成目录）；`client.js` 就是部署产物。除非用户明确要求并同时更新本文件。
 - **不要加 npm 运行时依赖**；React 和 DSH client primitives 来自宿主的模块表。
 - **不要 `require` 其他 Harness 客户端插件包**，也不要为此添加 `dsh.client.external`。
@@ -59,7 +59,9 @@ dsh --profile <profile> --dump-config    # 应出现 "# == dsh-2sidebar" 层
 ### 发布与打 tag
 
 1. 升版本：`package.json.version`，并在 `CHANGELOG.md` 加对应条目。
-2. 写发布说明：`docs/release-notes/v<version>.md`，中英双语，格式参考 `docs/release-notes/v0.1.1.md`。
+2. 写发布说明：`docs/release-notes/v<version>.md`，单文件中英双语，固定结构参考 `docs/release-notes/v0.1.2.md`：
+   `# dsh-2sidebar v<version>` → 一段概要 → 语言链接 → `---` → `新增/改进/修复`（按需）→ `安装` → `限制` → CHANGELOG 链接 → `## English` 镜像。
+   已发布版本的说明只做事实纠错，不重排结构。
 3. 提交代码与文档。
 4. 打 **annotated tag**，用文件而不是 `-m`：
 
@@ -81,7 +83,7 @@ dsh --profile <profile> --dump-config    # 应出现 "# == dsh-2sidebar" 层
 6. **创建 GitHub Release**（`publish.yml` 只发 npm，不会自动建 Release；网页上能看 Markdown 改动信息的是 Release 正文，不是 tag annotation）。必须先推送 tag，再用 `--verify-tag` 绑定到已推送的 tag，避免在默认分支上新建一个错误 tag：
 
    ```powershell
-   gh release create v<version> --verify-tag --title "dsh-2sidebar <version>" `
+   gh release create v<version> --verify-tag --title "dsh-2sidebar v<version>" `
      --notes-file docs/release-notes/v<version>.md --latest
    ```
 
