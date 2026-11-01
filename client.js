@@ -12,7 +12,7 @@ window.__ModuleLoader__.load({
   id: 'dsh-2sidebar',
   factory(require) {
     const React = require('react');
-    const { useCallback, useEffect, useRef, useState, useSyncExternalStore } = React;
+    const { useCallback, useEffect, useRef, useState } = React;
     const h = React.createElement;
 
     /**
@@ -24,7 +24,7 @@ window.__ModuleLoader__.load({
     const primitives = require('@deepseek-ai/dsh-client-ui-primitives');
 
     /** Cordis services this Client fiber needs. `sidebarRight` is what the header button's open call runs through. */
-    const inject = ['slots', 'sessions', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles'];
+    const inject = ['slots', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles'];
 
     /** Package identity: also the native tab implementation id and slot key. */
     const PACKAGE_ID = 'dsh-2sidebar';
@@ -581,12 +581,12 @@ window.__ModuleLoader__.load({
 
     /**
      * The tab body: one split view with the directory tree and the preview.
-     * Props arrive from the slot registration: framework `sessionId`/`t`, the
-     * host's `getCwd`/`subscribeSessions`, and the bound Remote readers.
+     * Props arrive from the slot registration: the framework's standard
+     * `sessionId`, `useSessions` and `t` props, and the bound Remote readers.
      */
     function Body(props) {
-      const { sessionId, t, getCwd, subscribeSessions, list, read, readBytes } = props;
-      const cwd = useSyncExternalStore(subscribeSessions, getCwd, getCwd);
+      const { sessionId, t, useSessions, list, read, readBytes } = props;
+      const cwd = useSessions((sessions) => sessions.byId[sessionId]?.cwd);
 
       const tree = useTree({ root: cwd, list });
       const preview = usePreview({ read, readBytes });
@@ -798,30 +798,12 @@ window.__ModuleLoader__.load({
         }],
       }), 'split-files: tab type');
 
-      /** The Session's workspace root, from the live session-list snapshot. */
-      const readCwd = (sessionId) => {
-        try {
-          return ctx.sessions.list.getSnapshot().byId[sessionId]?.cwd;
-        } catch {
-          return undefined;
-        }
-      };
-      const subscribeSessions = (listener) => {
-        try {
-          return ctx.sessions.list.subscribe(listener);
-        } catch {
-          return () => {};
-        }
-      };
-
       ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab',
         key: PACKAGE_ID,
         locale: NS,
         inject: (sessionId) => ({
           sessionId,
-          getCwd: () => readCwd(sessionId),
-          subscribeSessions,
           list: (path, signal) => ctx.remote.workspaceFiles.list(sessionId, path, signal),
           read: (path, range, signal) => ctx.remote.workspaceFiles.read(sessionId, path, range, signal),
           readBytes: typeof ctx.remote?.workspaceFiles?.readBytes === 'function'
