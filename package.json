@@ -5,6 +5,10 @@
   "license": "MIT",
   "type": "module",
   "main": "./index.js",
+  "scripts": {
+    "check": "node --check client.js",
+    "test": "node --test test/client.test.mjs test/manifest.test.mjs"
+  },
   "author": "SyaJask",
   "repository": {
     "type": "git",

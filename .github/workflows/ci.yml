@@ -1,0 +1,39 @@
+# Pull-request checks for the bundle. The package has no build step, so this
+# job only needs Node: syntax, the dependency-free tests in `test/`, and a
+# dry-run of the published payload.
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check the client bundle syntax
+        run: npm run check
+
+      - name: Run the bundle and manifest tests
+        run: npm test
+
+      - name: Show the package contents
+        run: npm pack --dry-run

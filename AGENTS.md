@@ -11,7 +11,7 @@
 ## 可以做什么
 
 - 在根目录维护 bundle：`client.js`、`index.js`、`package.json`、`cordis.patch.yml`、`locale/`、`icon.svg`。
-- 用 DSH 宿主能力：`ctx.slots.*`、`ctx.remote.workspaceFiles`、`ctx.locale`、`ctx.sessions`、`ctx.sidebarRight*`。
+- 用 DSH 宿主能力：`ctx.slots.*`、`ctx.remote.workspaceFiles`、`ctx.locale`、框架标准 `useSessions` prop、`ctx.sidebarRight*`。
 - 样式使用宿主语义 token（`--dsw-alias-*`）；文案使用 locale 字典。
 - 维护文档：`README.md` / `README.zh.md`、`CHANGELOG.md`、`docs/release-notes/<version>.md`、`docs/screenshot-split-files.png`。
 - 做小范围、可回滚的改动；改行为时同步更新 CHANGELOG、README 和对应 release note。
@@ -43,8 +43,11 @@
 
 ```powershell
 node --check client.js
+npm test
 npm pack --dry-run
 ```
+
+- `npm test` 跑 `test/` 下无第三方依赖的 bundle/manifest 测试；PR 与 main 的 CI 跑同一组（`.github/workflows/ci.yml`）。
 
 - `npm pack --dry-run` 只应包含：`package.json`、`README*.md`、`LICENSE` 和运行文件（`index.js`、`client.js`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`）。
 - DSH 侧验证：
@@ -114,7 +117,10 @@ dsh-2sidebar/
 ├── docs/
 │   ├── screenshot-split-files.png
 │   └── release-notes/<version>.md
-├── .github/workflows/publish.yml
+├── test/                   # 无依赖的 bundle/manifest 测试
+├── .github/workflows/
+│   ├── ci.yml              # PR/main 检查
+│   └── publish.yml         # tag 发布（provenance）
 └── .agents/                # 本地忽略，不提交
 ```
 
@@ -125,6 +131,6 @@ dsh-2sidebar/
 - 分页请求不可取消。
 - locale 字典内联在 `client.js`，`locale/*.json` 只含 `meta`。
 - 每页 2000 行可能超过宿主 2 MiB 页上限（长行文件）。
-- 没有自动化测试，只有 `node --check` + `npm pack` + 手工验证。
+- 测试只覆盖 bundle 注册契约、header 打开路径与 manifest/版本一致性；目录树、预览与拖拽的交互行为仍未覆盖。
 
 修好其中一项时：删除对应条目，并同步更新 README 的说明与 `CHANGELOG.md`。

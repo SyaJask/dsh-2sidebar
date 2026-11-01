@@ -142,6 +142,7 @@ There is no build step: `client.js` is the deployed client bundle and `index.js`
 
 ```powershell
 node --check client.js      # syntax
+npm test                    # bundle and manifest tests (no dependencies)
 ```
 
 To iterate, install from a clone with the `link:` spec and edit `client.js`; an npm installation is a copied package and does not follow source edits. The host reloads the profile on change.
@@ -158,7 +159,7 @@ Pull requests and issues are welcome. For anything that touches DSH's internal c
 | `CHANGELOG.md` | Release history in Keep a Changelog format |
 | `LICENSE` | MIT license |
 | `docs/` | Screenshot and per-version release notes (`docs/release-notes/<version>.md`) |
-| `.github/workflows/publish.yml` | CI: npm publishing with provenance |
+| `.github/workflows/` | PR checks (`ci.yml`) and npm publishing with provenance (`publish.yml`) |
 | `.gitignore` | Ignores local editor files and the local-only `.agents/` directory |
 | `.agents/` | Local agent notes and skills; git-ignored and not distributed |
 

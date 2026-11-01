@@ -142,6 +142,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 
 ```powershell
 node --check client.js      # 语法检查
+npm test                    # bundle 与 manifest 测试（无依赖）
 ```
 
 迭代方式：用从 clone 安装的 `link:` 方式安装，然后直接改 `client.js`，宿主会重载 profile；npm 安装的是复制后的包，不会跟随源码修改。
@@ -158,7 +159,7 @@ node --check client.js      # 语法检查
 | `CHANGELOG.md` | 按 Keep a Changelog 的版本历史 |
 | `LICENSE` | MIT 许可证 |
 | `docs/` | 截图以及逐版本发布说明（`docs/release-notes/<version>.md`） |
-| `.github/workflows/publish.yml` | CI：带 provenance 的 npm 发布 |
+| `.github/workflows/` | PR 检查（`ci.yml`）与带 provenance 的 npm 发布（`publish.yml`） |
 | `.gitignore` | 忽略本地编辑器文件与仅本地保留的 `.agents/` |
 | `.agents/` | 本地 agent 笔记与 skills，已 gitignore，不随仓库分发 |
 

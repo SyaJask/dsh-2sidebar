@@ -1,8 +1,9 @@
 # Publish the package to npm.
 #
-# Two ways to run:
-#   - push a tag `v<version>` (the tag must match the root package.json `version`)
-#   - run the workflow manually from the Actions tab
+# Releases are tag-driven: pushing a tag `v<version>` whose version matches the
+# root package.json runs the checks and publishes with provenance. There is no
+# manual dispatch: a dispatch run is not bound to a tag, so it could publish a
+# version without one.
 #
 # The first release has to be published by a maintainer locally, because a
 # trusted publisher can only be configured for a package that already exists
@@ -16,10 +17,11 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 concurrency:
-  group: npm-publish-${{ github.ref }}
+  # One publish at a time across tags: a slower older release must not move
+  # the `latest` dist-tag after a newer one.
+  group: npm-publish
   cancel-in-progress: false
 
 permissions:
@@ -29,6 +31,7 @@ permissions:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,11 +42,20 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Use the latest npm (trusted publishing needs npm >= 11.5)
-        run: npm install -g npm@latest
+      - name: Pin npm for trusted publishing (11.5 or newer is required)
+        run: npm install -g npm@11.21.1
+
+      - name: Require a version tag
+        run: |
+          case "${GITHUB_REF}" in
+            refs/tags/v*) ;;
+            *)
+              echo "::error::publish runs only from a v* tag, not ${GITHUB_REF}"
+              exit 1
+              ;;
+          esac
 
       - name: Check the tag matches the package version
-        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           tag="${GITHUB_REF_NAME#v}"
           pkg="$(node -p "require('./package.json').version")"
@@ -54,7 +66,10 @@ jobs:
           fi
 
       - name: Check the client bundle syntax
-        run: node --check client.js
+        run: npm run check
+
+      - name: Run the bundle and manifest tests
+        run: npm test
 
       - name: Show the package contents
         run: npm pack --dry-run
