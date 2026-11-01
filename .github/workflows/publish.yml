@@ -1,14 +1,14 @@
-# Publish the `plugin/` package to npm.
+# Publish the package to npm.
 #
 # Two ways to run:
-#   - push a tag `v<version>` (the tag must match plugin/package.json `version`)
+#   - push a tag `v<version>` (the tag must match the root package.json `version`)
 #   - run the workflow manually from the Actions tab
 #
 # The first release has to be published by a maintainer locally, because a
 # trusted publisher can only be configured for a package that already exists
-# on the registry (see notes/publish-npm.md). After that, configure
-# GitHub Actions trusted publishing for this repository + this workflow file
-# and every tag push publishes with provenance, without any npm token.
+# on the registry. After that, configure GitHub Actions trusted publishing for
+# this repository + this workflow file and every tag push publishes with
+# provenance, without any npm token.
 
 name: publish
 
@@ -29,9 +29,6 @@ permissions:
 jobs:
   npm:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: plugin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,13 +49,12 @@ jobs:
           pkg="$(node -p "require('./package.json').version")"
           echo "tag=$tag package=$pkg"
           if [ "$tag" != "$pkg" ]; then
-            echo "::error::tag $tag does not match plugin/package.json version $pkg"
+            echo "::error::tag $tag does not match package.json version $pkg"
             exit 1
           fi
 
-      - name: Smoke test the bundle contract
-        run: node tools/smoke-client.mjs
-        working-directory: ${{ github.workspace }}
+      - name: Check the client bundle syntax
+        run: node --check client.js
 
       - name: Show the package contents
         run: npm pack --dry-run

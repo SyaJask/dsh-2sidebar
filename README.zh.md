@@ -11,7 +11,7 @@
 
 ![DSH 右侧栏里的目录分栏](docs/screenshot-split-files.png)
 
-> 状态：早期版本（`0.1.1`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
+> 状态：早期版本（`0.1.2`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
 
 ## 为什么做这个
 
@@ -29,20 +29,20 @@ DSH 自带的 **Files** 页签是把文件作为预览打开在侧栏里，浏�
 
 ## 功能
 
-- **分栏视图**：中间分隔条可拖动（20%–70%），比例与「收起目录」状态按窗口记忆。
-- **懒加载目录树**：以会话工作区为根，展开时才读取该层；「重新读取」刷新根目录和所有已展开层；空目录、被截断、读取失败都有行内提示。
+- **分栏视图**：中间分隔条可拖动（20%–70%），比例与「收起目录」状态保存在当前浏览器的 localStorage（同 origin 的多个窗口共享）。
+- **懒加载目录树**：以会话工作区为根，展开时才读取该层；「重新读取」刷新根目录和所有已展开层；空目录与被截断有行内提示（刷新失败时保留上一次的目录内容）。
 - **文本预览**：每页 2,000 行，可「加载更多」，到底显示「已到文件末尾」，并显示文件大小。
 - **图片预览**：支持 `png`、`jpg`、`jpeg`、`gif`、`webp`、`bmp`、`ico`、`avif` 和 `svg`。
 - **收起目录**：折叠成单栏预览，展开后仍保留当前选中的文件。
-- **三个入口**：会话标题栏的分栏图标（紧挨原生右侧栏开关）、右侧栏开始页的引导卡片，或它自己的原生页签。
+- **两个入口**：会话标题栏的分栏图标（紧挨原生右侧栏开关）、右侧栏开始页的引导卡片；打开后它就是普通侧栏页签。
 - **跟随主题**，界面支持英文与中文。
-- **只读、离线**：不发网络请求、没有 Host 业务代码、零运行时依赖；文件访问全部走宿主的 `workspaceFiles` 服务，遵守和内建功能相同的上限。
+- **只读、离线**：不发网络请求、没有 Host 业务代码、没有 npm 运行时依赖；渲染使用 DSH shell 基线 primitives（见[兼容性](#兼容性)）。文件访问全部走宿主的 `workspaceFiles` 服务，遵守和内建功能相同的上限。
 
 ## 安装
 
 ### 前提
 
-- 一个由插件管理器管理的 DSH Desktop 配置（在 `0.2.1-rc.3` 上验证；见[兼容性](#兼容性)）。
+- 一个由插件管理器管理的 DSH Desktop 配置（在 `0.2.1-rc.5` 上验证；见[兼容性](#兼容性)）。
 - 右侧栏和客户端插件管理器（DSH 自带）。
 
 ### 从 npm 安装（推荐）
@@ -59,18 +59,10 @@ dsh plugin --profile desktop add dsh-2sidebar
 
 ```powershell
 git clone https://github.com/SyaJask/dsh-2sidebar.git
-dsh plugin --profile desktop add "link:C:/src/dsh-2sidebar/plugin"
+dsh plugin --profile desktop add "link:C:/src/dsh-2sidebar"
 ```
 
-也可以在 GUI 的 **Add plugin** 对话框里填 `plugin` 目录的**绝对路径**。
-
-不想跑 pnpm 的 Windows 用户可以用带备份/回滚的脚本（默认只预演）：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-bundle.ps1 `
-  -PluginDir C:\src\dsh-2sidebar\plugin          # 只打印计划
-# 加 -Apply 才写入
-```
+也可以在 GUI 的 **Add plugin** 对话框里填仓库根目录的**绝对路径**。
 
 ### 打开
 
@@ -87,12 +79,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File notes\scripts\install-local-
 dsh plugin --profile desktop remove dsh-2sidebar
 ```
 
-- 本地 link 安装的脚本：`notes\scripts\uninstall-local-bundle.ps1 -Name dsh-2sidebar -Apply`（会先备份 profile）。
-
 ## 使用
 
-- 点目录展开/收起；每次展开都会重新读取该层。
-- 点文件在右栏打开，目录树不移动、不滚动、不重新渲染。
+- 点目录展开/收起；展开时会重新读取该层。
+- 点文件在右栏打开；目录树保持滚动位置与展开状态。
 - 拖动分隔条调整左右比例，松手时保存。
 - **重新读取**刷新根目录和所有已展开目录。
 - **收起目录**折叠左栏，右栏保留当前文件。
@@ -101,9 +91,8 @@ dsh plugin --profile desktop remove dsh-2sidebar
 
 ## 兼容性
 
-- **已验证**：DSH Desktop `0.2.1-rc.3`，Windows。
-- **预期可用**：提供相同客户端服务（`slots`、`sidebarRightTabs`、`sidebarRight`、`remote.workspaceFiles`）和 shell 基线客户端 primitives（`@deepseek-ai/dsh-client-ui-primitives`）的其它 DSH Desktop 版本，以及 macOS/Linux 构建；bundle 本身与平台无关。
-- **安装脚本仅支持 Windows**（`.ps1`）；其它平台请用界面或 `dsh plugin`。
+- **已验证**：DSH Desktop `0.2.1-rc.5`，Windows（所用客户端 API 已按 `0.2.1-rc.5` 核对；`0.2.1-rc.3` 为上一验证版本）。
+- **预期可用**：提供相同客户端服务（`slots`、`sessions`、`locale`、`sidebarRightTabs`、`sidebarRight`、`remote`、`remote.workspaceFiles`）和 shell 基线客户端 primitives（`@deepseek-ai/dsh-client-ui-primitives`）的其它 DSH Desktop 版本，以及 macOS/Linux 构建；bundle 本身与平台无关。
 - DSH 处于开发者预览阶段，扩展 API 可能随时变动。升级 DSH 后如果插件不再加载，请带上 DSH 版本和浏览器控制台报错开 issue。
 
 ## 实现要点
@@ -111,7 +100,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 这是一个**纯客户端 bundle**：
 
 - `index.js` 是空的 Host 半侧，渲染全部在浏览器里。
-- 客户端注册一个侧栏页签**类型**（`ctx.sidebarRightTabs`），通过 `sidebar.right.pane.tab` 槽位注册**正文**和**标题**，通过 `conversation.session.header.utilities` 注册标题栏按钮，并注册自己的中英文词典。
+- 客户端注册一个侧栏页签**类型**（`ctx.sidebarRightTabs`），通过 `sidebar.right.pane.tab` 槽位注册**正文**、`sidebar.right.pane.tab.title` 槽位注册**标题**，通过 `conversation.session.header.utilities` 注册标题栏按钮，并注册自己的中英文词典。
 - 目录列举与文件读取全部走宿主已有的 `ctx.remote.workspaceFiles`（`list` / `read` / `readBytes`），工作目录来自 `ctx.sessions.list`。插件不新增 Host 路由，也不申请额外权限。
 - `cordis.patch.yml` 只插入一行 profile 记录；`keepMounted: true` 让正文在切页签后继续存活，树的展开状态因此得以保留。
 
@@ -124,7 +113,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 目录树以会话的工作目录为根；没有工作目录的会话没有可浏览的内容。换一个有工作区的会话即可。
 
 **文件提示太大或是二进制？**
-文本按行分页读取，遵循宿主的 `maxBytes`（每页 2 MiB）与 `maxLines`（5,000）上限；图片按完整文件读取，遵循 `maxFileBytes`（默认 32 MiB）。单行超过页上限的文件无法按文本预览。
+文本按行分页读取，遵循宿主的 `maxBytes`（每页 2 MiB）与 `maxLines`（5,000）上限；图片按完整文件读取，遵循 `maxFileBytes`（默认 32 MiB）。整页字节超过 2 MiB 与单行超限都会返回 too-large，无法按文本预览。
 
 **PDF / Office / HTML 能在右栏打开吗？**
 不能内联。请用 DSH 原生预览页签；本插件专注于代码、配置和图片。
@@ -133,31 +122,29 @@ dsh plugin --profile desktop remove dsh-2sidebar
 只读：它调用宿主的 workspace 文件服务，作用范围和上限与内建界面一致。bundle 不发网络请求，也没有遥测。
 
 **分栏比例和树状态存在哪？**
-`localStorage` 的 `dsh-2sidebar.ratio` 和 `dsh-2sidebar.tree-hidden`。清除站点数据或这两个键即可重置。改名前的 `dsh-split-files.*` 键仍会作为兜底读取一次。
+`localStorage` 的 `dsh-2sidebar.ratio` 和 `dsh-2sidebar.tree-hidden`。清除站点数据或这两个键即可重置。改名前的 `dsh-split-files.*` 键在新键缺失时仍会作为兜底读取。
 
 **为什么会有两个文件页签？**
 自带的 **Files** 页签用于把文件交给原生预览；本插件用于同时看目录和文件。两者不冲突。
 
 ## 路线图
 
-- 首个 npm 版本与 trusted publishing。
-- 文件搜索/过滤、目录优先排序、隐藏 dotfiles 开关。
+- 文件搜索/过滤、隐藏 dotfiles 开关。
 - 通过 workspace 文件变更流自动刷新。
 - 「在原生预览中打开」（PDF/Office/HTML）。
 - 键盘导航与可配置快捷键。
-- 自动化测试与 CI（目前的 smoke 只覆盖注册契约）。
+- 自动化测试与 CI。
 - 更多界面语言。
 
 ## 开发
 
-没有构建步骤：`plugin/client.js` 就是部署用的客户端 bundle，`plugin/index.js` 是空的 Host 半侧。
+没有构建步骤：`client.js` 就是部署用的客户端 bundle，`index.js` 是空的 Host 半侧。
 
 ```powershell
-node --check plugin/client.js      # 语法检查
-node tools/smoke-client.mjs        # 注册 + 渲染冒烟测试
+node --check client.js      # 语法检查
 ```
 
-迭代方式：按上面的步骤安装 bundle，直接改 `plugin/client.js`，宿主会重载 profile。`notes/ui-api.md` 与 `notes/build-install.md` 记录了扩展 API 的取证与安装契约。`ref/` 是仅本地保留的参考资料，不在仓库里。
+迭代方式：用从 clone 安装的 `link:` 方式安装，然后直接改 `client.js`，宿主会重载 profile；npm 安装的是复制后的包，不会跟随源码修改。
 
 欢迎提 PR 和 issue。涉及 DSH 内部客户端 API 的改动，请注明验证过的 DSH 版本。
 
@@ -165,13 +152,9 @@ node tools/smoke-client.mjs        # 注册 + 渲染冒烟测试
 
 | 路径 | 说明 |
 |---|---|
-| `plugin/` | 插件本体，安装目标就是这个目录，也是 npm 包 |
-| `plugin/README.md` | 包内 README（npm 上也会用它） |
-| `notes/` | 实现笔记、安装/验证脚本，以及 npm 发布手册（`notes/publish-npm.md`） |
-| `tools/` | 开发辅助：asar 解析、截图、smoke、冲突扫描 |
-| `docs/` | 截图 |
+| `package.json`、`index.js`、`client.js`、`cordis.patch.yml`、`locale/`、`icon.svg` | 插件本体，也是 npm 包和安装目标 |
+| `docs/` | 截图与发布说明 |
 | `.github/workflows/` | CI：带 provenance 的 npm 发布 |
-| `ref/` | 从安装包提取的上游参考，已 gitignore，仅本地保留 |
 
 ## License
 

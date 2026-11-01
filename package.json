@@ -1,6 +1,6 @@
 {
   "name": "dsh-2sidebar",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Split-pane file browser for the DSH right sidebar: directory tree on the left, file content on the right.",
   "license": "MIT",
   "type": "module",
@@ -8,8 +8,7 @@
   "author": "SyaJask",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SyaJask/dsh-2sidebar.git",
-    "directory": "plugin"
+    "url": "git+https://github.com/SyaJask/dsh-2sidebar.git"
   },
   "homepage": "https://github.com/SyaJask/dsh-2sidebar#readme",
   "bugs": {
@@ -30,30 +29,31 @@
     ".": "./index.js",
     "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
-    "./icon": "./icon.svg"
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
   },
   "files": [
     "index.js",
     "client.js",
     "cordis.patch.yml",
     "locale/*.json",
-    "icon.svg",
-    "README.md",
-    "LICENSE"
+    "icon.svg"
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "dsh": ">=0.2.1-rc.3 <0.3.0"
   },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
     "client": {
       "platform": "web",
-      "immediately": true,
       "inject": [
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-slots",
         "@deepseek-ai/dsh-client-ui-sidebar-right",
-        "@deepseek-ai/dsh-client-modules"
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-api-workspace-files",
+        "@deepseek-ai/dsh-api-remotes"
       ]
     }
   }

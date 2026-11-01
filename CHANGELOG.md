@@ -6,8 +6,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-01
+
 ### Changed
 
+- The npm package now lives at the repository root: `plugin/` is gone, so the
+  install target is the repository root and the bundle is `package.json`,
+  `index.js`, `client.js`, `cordis.patch.yml`, `locale/` and `icon.svg`.
+- The bundle manifest now follows the DSH plugin contract: `engines.dsh`, an
+  exported `./package.json`, a host-half `name`, package-name
+  `dsh.client.inject` edges, and a patch row without an empty `config`.
 - The split tab now follows the native sidebar tab's visual language: the
   built-in Files tab's 13 px content scale, 38 px headers, 28 px tool buttons,
   5×10 px row padding, 18 px nested indentation, DSH design tokens, the shared
@@ -49,5 +57,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The bundle is named `dsh-2sidebar` (previously `@local/dsh-split-files`); the
   old `dsh-split-files.*` localStorage keys are still read once.
 
+[Unreleased]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/SyaJask/dsh-2sidebar/releases/tag/v0.1.0

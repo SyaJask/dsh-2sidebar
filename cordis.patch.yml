@@ -1,4 +1,4 @@
-# Split-files bundle: one row mounting the package. The client half registers
+# dsh-2sidebar bundle: one row mounting the package. The client half registers
 # its own right-Sidebar tab type, so no other Host row is needed.
 #
 # `id` is the row id inside the profile patch, `name` must be the npm package
@@ -7,4 +7,3 @@
 - insert:
     - id: dsh-2sidebar
       name: 'dsh-2sidebar'
-      config: {}
