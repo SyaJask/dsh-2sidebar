@@ -6,6 +6,17 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-01
+
+### Changed
+
+- The client tab now reads the session workspace root through the framework's
+  standard `useSessions` prop instead of subscribing to the session store
+  itself, so components carry no subscription machinery. The unused `sessions`
+  Cordis service is no longer injected; behavior is unchanged.
+- The declared DSH compatibility floor (`engines.dsh`) is now `0.2.1-rc.5`,
+  matching the version the client APIs are verified against.
+
 ## [0.1.2] - 2026-11-01
 
 ### Changed
@@ -57,7 +68,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The bundle is named `dsh-2sidebar` (previously `@local/dsh-split-files`); the
   old `dsh-split-files.*` localStorage keys are still read once.
 
-[Unreleased]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/SyaJask/dsh-2sidebar/releases/tag/v0.1.0

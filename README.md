@@ -4,26 +4,26 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-2sidebar)](https://www.npmjs.com/package/dsh-2sidebar)
-[![DeepSeek Harness 0.2.1-rc.3](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.3-4f46e5)](https://github.com/deepseek-ai/deepseek-harness)
+[![DeepSeek Harness 0.2.1-rc.5](<https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.5-4f46e5>)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
 A split-pane file browser for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) right sidebar: **directory tree on the left, the selected file on the right** — both visible at once, so switching files never moves the tree.
 
 ![Split files in the DSH right sidebar](docs/screenshot-split-files.png)
 
-> Status: early (`0.1.2`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
+> Status: early (`0.1.3`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
 
 ## Why
 
 DSH's built-in **Files** tab opens a file as a sidebar preview, so browsing and reading share one column. This plugin keeps the tree and the preview side by side in the same tab: click a file, the right pane switches, the tree stays exactly where it was.
 
-| | dsh-2sidebar | Built-in Files tab |
-|---|---|---|
-| Layout | tree and preview side by side | tree; a file opens as a preview in the same column |
-| Browse while reading | both always visible | switch between tree and preview |
-| Text / image preview | inline, paged | native preview, all supported formats |
-| Tree state | kept while the tab is mounted | kept in the sidebar store |
-| Open shortcut | header button / guide card | `Mod+P` |
+|                      | dsh-2sidebar                  | Built-in Files tab                                 |
+| -------------------- | ----------------------------- | -------------------------------------------------- |
+| Layout               | tree and preview side by side | tree; a file opens as a preview in the same column |
+| Browse while reading | both always visible           | switch between tree and preview                    |
+| Text / image preview | inline, paged                 | native preview, all supported formats              |
+| Tree state           | kept while the tab is mounted | kept in the sidebar store                          |
+| Open shortcut        | header button / guide card    | `Mod+P`                                          |
 
 Both can be installed and used at the same time.
 
@@ -153,8 +153,14 @@ Pull requests and issues are welcome. For anything that touches DSH's internal c
 | Path | What |
 |---|---|
 | `package.json`, `index.js`, `client.js`, `cordis.patch.yml`, `locale/`, `icon.svg` | The plugin bundle — the npm package and the install target |
-| `docs/` | Screenshot and release notes |
-| `.github/workflows/` | CI: npm publishing with provenance |
+| `AGENTS.md` | Repository and agent conventions |
+| `README.md`, `README.zh.md` | English and Chinese user documentation (npm uses `README.md`) |
+| `CHANGELOG.md` | Release history in Keep a Changelog format |
+| `LICENSE` | MIT license |
+| `docs/` | Screenshot and per-version release notes (`docs/release-notes/<version>.md`) |
+| `.github/workflows/publish.yml` | CI: npm publishing with provenance |
+| `.gitignore` | Ignores local editor files and the local-only `.agents/` directory |
+| `.agents/` | Local agent notes and skills; git-ignored and not distributed |
 
 ## License
 

@@ -4,26 +4,26 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-2sidebar)](https://www.npmjs.com/package/dsh-2sidebar)
-[![DeepSeek Harness 0.2.1-rc.3](https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.3-4f46e5)](https://github.com/deepseek-ai/deepseek-harness)
+[![DeepSeek Harness 0.2.1-rc.5](<https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.5-4f46e5>)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）右侧栏用的「目录分栏」插件：**左边目录树、右边文件内容**，两栏同时可见，切换文件时目录树原地不动。
 
 ![DSH 右侧栏里的目录分栏](docs/screenshot-split-files.png)
 
-> 状态：早期版本（`0.1.2`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
+> 状态：早期版本（`0.1.3`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
 
 ## 为什么做这个
 
 DSH 自带的 **Files** 页签是把文件作为预览打开在侧栏里，浏览目录和阅读文件共用同一列。本插件把目录树和预览放进**同一个页签的两栏**：点文件，右栏切换，左树完全不动。
 
-| | dsh-2sidebar | 自带 Files 页签 |
-|---|---|---|
-| 布局 | 目录树与预览并排 | 目录树；文件以预览形式占用同一列 |
-| 边看目录边读文件 | 两栏始终可见 | 在目录与预览之间切换 |
-| 文本 / 图片预览 | 内联、分页 | 原生预览，支持全部格式 |
-| 树的展开状态 | 页签挂载期间保持 | 由侧栏 store 保持 |
-| 打开方式 | 标题栏按钮 / 引导卡片 | `Mod+P` |
+|                  | dsh-2sidebar          | 自带 Files 页签                  |
+| ---------------- | --------------------- | -------------------------------- |
+| 布局             | 目录树与预览并排      | 目录树；文件以预览形式占用同一列 |
+| 边看目录边读文件 | 两栏始终可见          | 在目录与预览之间切换             |
+| 文本 / 图片预览  | 内联、分页            | 原生预览，支持全部格式           |
+| 树的展开状态     | 页签挂载期间保持      | 由侧栏 store 保持                |
+| 打开方式         | 标题栏按钮 / 引导卡片 | `Mod+P`                        |
 
 两者可以同时安装、同时使用。
 
@@ -153,8 +153,14 @@ node --check client.js      # 语法检查
 | 路径 | 说明 |
 |---|---|
 | `package.json`、`index.js`、`client.js`、`cordis.patch.yml`、`locale/`、`icon.svg` | 插件本体，也是 npm 包和安装目标 |
-| `docs/` | 截图与发布说明 |
-| `.github/workflows/` | CI：带 provenance 的 npm 发布 |
+| `AGENTS.md` | 仓库与 agent 协作约定 |
+| `README.md`、`README.zh.md` | 英文/中文用户文档（npm 页面使用 `README.md`） |
+| `CHANGELOG.md` | 按 Keep a Changelog 的版本历史 |
+| `LICENSE` | MIT 许可证 |
+| `docs/` | 截图以及逐版本发布说明（`docs/release-notes/<version>.md`） |
+| `.github/workflows/publish.yml` | CI：带 provenance 的 npm 发布 |
+| `.gitignore` | 忽略本地编辑器文件与仅本地保留的 `.agents/` |
+| `.agents/` | 本地 agent 笔记与 skills，已 gitignore，不随仓库分发 |
 
 ## License
 
