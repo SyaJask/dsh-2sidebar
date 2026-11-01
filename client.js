@@ -724,55 +724,61 @@ window.__ModuleLoader__.load({
       }, 'split-files: global styles');
 
       /**
+       * Open (and focus) the split tab through the captured pane target. It runs
+       * in the apply world; the header button receives it through its inject face.
+       */
+      const openSplitTab = () => {
+        // Open through the captured pane target: the host applies the same
+        // rule as a guide card or its own open-file shortcut, so an active
+        // "Start" (guide) tab gives way to the page it opens, and a collapsed
+        // column expands inside that same layout step.
+        //
+        // Never expand first: the host seeds the default guide page when an
+        // empty column expands, so a pre-expansion would leave "Start" beside
+        // this tab. An open into a fresh surface must show only what opened.
+        //
+        // The navigation service acts on the Session's ADOPTED store; a
+        // just-opened Session may not have one yet, so retry briefly while
+        // its view mounts and adopts the store.
+        const attemptOpen = (left) => {
+          try {
+            const target = typeof ctx.sidebarRight.commandTarget === 'function'
+              ? ctx.sidebarRight.commandTarget()
+              : undefined;
+            if (target !== undefined && typeof ctx.sidebarRight.openTabFromTarget === 'function') {
+              ctx.sidebarRight.openTabFromTarget(KIND, target);
+              return;
+            }
+            // Public fallback: an active guide gives way to the page it opens,
+            // the same rule the host's own guide entries apply.
+            const activeTab = typeof ctx.sidebarRight.active === 'function'
+              ? ctx.sidebarRight.active()
+              : undefined;
+            ctx.sidebarRight.openTab(KIND, activeTab !== undefined && activeTab.kind === 'guide'
+              ? { replaceTab: activeTab.id }
+              : {});
+          } catch (error) {
+            if (left > 0) {
+              window.setTimeout(() => attemptOpen(left - 1), 180);
+              return;
+            }
+            console.error('[split-files] open tab failed:', error);
+          }
+        };
+        attemptOpen(8);
+      };
+
+      /**
        * The always-visible entry point: one split icon next to the host's own
        * session-header utilities that opens (and focuses) the split tab.
        */
-      const HeaderButton = () => h('button', {
+      const HeaderButton = ({ open }) => h('button', {
         type: 'button',
         className: 'dsfs-header-btn',
         title: t('button.open'),
         'aria-label': t('button.open'),
         'data-split-files-open': '',
-        onClick: () => {
-          // Open through the captured pane target: the host applies the same
-          // rule as a guide card or its own open-file shortcut, so an active
-          // "Start" (guide) tab gives way to the page it opens, and a collapsed
-          // column expands inside that same layout step.
-          //
-          // Never expand first: the host seeds the default guide page when an
-          // empty column expands, so a pre-expansion would leave "Start" beside
-          // this tab. An open into a fresh surface must show only what opened.
-          //
-          // The navigation service acts on the Session's ADOPTED store; a
-          // just-opened Session may not have one yet, so retry briefly while
-          // its view mounts and adopts the store.
-          const attemptOpen = (left) => {
-            try {
-              const target = typeof ctx.sidebarRight.commandTarget === 'function'
-                ? ctx.sidebarRight.commandTarget()
-                : undefined;
-              if (target !== undefined && typeof ctx.sidebarRight.openTabFromTarget === 'function') {
-                ctx.sidebarRight.openTabFromTarget(KIND, target);
-                return;
-              }
-              // Public fallback: an active guide gives way to the page it opens,
-              // the same rule the host's own guide entries apply.
-              const activeTab = typeof ctx.sidebarRight.active === 'function'
-                ? ctx.sidebarRight.active()
-                : undefined;
-              ctx.sidebarRight.openTab(KIND, activeTab !== undefined && activeTab.kind === 'guide'
-                ? { replaceTab: activeTab.id }
-                : {});
-            } catch (error) {
-              if (left > 0) {
-                window.setTimeout(() => attemptOpen(left - 1), 180);
-                return;
-              }
-              console.error('[split-files] open tab failed:', error);
-            }
-          };
-          attemptOpen(8);
-        },
+        onClick: open,
       }, h(primitives.IconCompareSplitOutlineRegular, { size: 16 }));
 
       ctx.effect(() => ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
@@ -780,6 +786,7 @@ window.__ModuleLoader__.load({
         id: 'split-files:header-button',
         order: 20,
         registrant: 'split-files',
+        inject: () => ({ open: openSplitTab }),
       }, HeaderButton)), 'split-files: header button');
 
       ctx.effect(() => ctx.sidebarRightTabs.register({
