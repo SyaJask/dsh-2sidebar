@@ -6,10 +6,32 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A preview-header control swaps the directory tree to the right of the preview
+  and back. The tree starts on the left, the choice is remembered in
+  `dsh-2sidebar.tree-side`, the splitter drag direction follows the chosen side,
+  and the hide/show chevrons point the way the tree moves.
+
 ### Changed
 
 - The header button receives its open callback through the slot inject face
   instead of closing over the Cordis context; behavior is unchanged.
+- The plugin stylesheet is installed once with the plugin fiber instead of once
+  per tab body, so the tab chip title is styled before a restored body mounts.
+  Collapsing a directory now only collapses it; expanding still re-reads.
+- Removed state nothing observed: the unused split-ratio helper, the never-read
+  "load more failed" flag, the unused `preview.truncated` copy, the redundant
+  tree-level class and `depth` prop, and the `readBytes` absence fallback (the
+  supported Host always provides that reader).
+- The header button opens only through `ctx.sidebarRight.commandTarget()` and
+  `openTabFromTarget()`, which the supported Host provides; the unreachable
+  `active()`/`openTab()` fallback and its API-presence guards are gone.
+- Tree rows read the Host's `entry.type` only; the unreachable `entry.kind`
+  fallback is gone.
+- README (`en`/`zh`) now names the framework's `useSessions` prop as the source
+  of the workspace root, and the roadmap no longer lists tests and CI as
+  pending.
 
 ## [0.1.3] - 2026-11-01
 

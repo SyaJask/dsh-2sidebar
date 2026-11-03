@@ -38,6 +38,7 @@ window.__ModuleLoader__.load({
     const PAGE_LINES = 2000;
     const RATIO_KEY = 'dsh-2sidebar.ratio';
     const TREE_HIDDEN_KEY = 'dsh-2sidebar.tree-hidden';
+    const TREE_SIDE_KEY = 'dsh-2sidebar.tree-side';
     /** Pre-rename keys: read once so an existing install keeps its saved layout. */
     const LEGACY_RATIO_KEY = 'dsh-split-files.ratio';
     const LEGACY_TREE_HIDDEN_KEY = 'dsh-split-files.tree-hidden';
@@ -69,6 +70,8 @@ window.__ModuleLoader__.load({
       'tree.refresh': '重新读取',
       'tree.hide': '收起目录',
       'tree.show': '展开目录',
+      'tree.toLeft': '把目录树移到左侧',
+      'tree.toRight': '把目录树移到右侧',
       'preview.empty': '从左边目录里选一个文件',
       'preview.loading': '正在读取…',
       'preview.more': '加载更多',
@@ -79,7 +82,6 @@ window.__ModuleLoader__.load({
       'preview.tooLarge': '文件太大，无法预览',
       'preview.notFile': '这不是普通文件',
       'preview.failed': '读取失败',
-      'preview.truncated': '只显示了一页，可继续加载',
       'preview.unsupportedImage': '图片读取失败',
       'button.open': '打开目录分栏',
     };
@@ -97,6 +99,8 @@ window.__ModuleLoader__.load({
       'tree.refresh': 'Reload',
       'tree.hide': 'Hide the tree',
       'tree.show': 'Show the tree',
+      'tree.toLeft': 'Move the tree to the left',
+      'tree.toRight': 'Move the tree to the right',
       'preview.empty': 'Pick a file in the tree',
       'preview.loading': 'Loading…',
       'preview.more': 'Load more',
@@ -107,7 +111,6 @@ window.__ModuleLoader__.load({
       'preview.tooLarge': 'The file is too large to preview',
       'preview.notFile': 'This is not a regular file',
       'preview.failed': 'Could not read the file',
-      'preview.truncated': 'One page shown; load more to continue',
       'preview.unsupportedImage': 'Could not read the image',
       'button.open': 'Open split files',
     };
@@ -158,13 +161,9 @@ window.__ModuleLoader__.load({
     /** Directories first, then natural name order — the native Files tab's order. */
     const byName = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
-    function entryType(entry) {
-      return entry.type ?? entry.kind;
-    }
-
     function orderEntries(entries) {
       return [...entries].sort((left, right) => {
-        const group = Number(entryType(right) === 'directory') - Number(entryType(left) === 'directory');
+        const group = Number(right.type === 'directory') - Number(left.type === 'directory');
         return group !== 0 ? group : byName.compare(left.name, right.name);
       });
     }
@@ -172,15 +171,18 @@ window.__ModuleLoader__.load({
     // ----------------------------------------------------------------- style
 
     /**
-     * The tab body's styles. Values mirror the built-in Files tab and the
-     * sidebar document preview (13 px content scale, 38 px headers, 28 px
-     * tools, 18 px nested-list indent, 5×10 px row padding), and every colour
-     * comes from the shared `--dsw-alias-*` design tokens so light/dark and
-     * future themes follow the host automatically.
+     * The plugin's stylesheet: the tab body plus the tab chip title. Values
+     * mirror the built-in Files tab and the sidebar document preview (13 px
+     * content scale, 38 px headers, 28 px tools, 18 px nested-list indent,
+     * 5×10 px row padding), and every colour comes from the shared
+     * `--dsw-alias-*` design tokens so light/dark and future themes follow the
+     * host automatically. `apply` installs it once for the plugin fiber, because
+     * the title chip renders before (and without) a mounted body.
      */
     const CSS = [
       '.dsfs-root{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;width:100%;color:var(--dsw-alias-label-primary,inherit);font:inherit;font-size:var(--dsh-content-font-size-secondary,13px);line-height:1.5;overflow:hidden;}',
       '.dsfs-main{flex:1;display:flex;min-height:0;min-width:0;width:100%;}',
+      '.dsfs-main[data-tree-side="right"]{flex-direction:row-reverse;}',
       '.dsfs-pane{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;}',
       '.dsfs-tree-pane{min-width:96px;max-width:72%;}',
       '.dsfs-bar{box-sizing:border-box;display:flex;align-items:center;gap:4px;height:38px;padding:0 6px 0 16px;flex:0 0 auto;border-bottom:.5px solid var(--dsw-alias-border-l3,color-mix(in srgb,currentColor 12%,transparent));}',
@@ -226,19 +228,14 @@ window.__ModuleLoader__.load({
       '.dsfs-title{display:inline-flex;align-items:center;gap:5px;min-width:0;}',
     ].join('');
 
-    /** Styles for the always-visible header button (lives outside the tab body). */
-    const GLOBAL_CSS = [
+    /** Styles for the header button (lives outside the tab body). */
+    const HEADER_CSS = [
       '.dsfs-header-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:6px;flex:none;color:var(--dsw-alias-label-secondary,inherit);background:none;border:none;border-radius:var(--dsw-radius-sm,4px);cursor:pointer;line-height:1;}',
       '.dsfs-header-btn svg{width:16px;height:16px;}',
       '.dsfs-header-btn:active{background:var(--dsw-alias-interactive-bg-active,color-mix(in srgb,currentColor 18%,transparent));}',
       '@media (hover:hover){.dsfs-header-btn:hover{color:var(--dsw-alias-label-primary,inherit);background:var(--dsw-alias-interactive-bg-hover,color-mix(in srgb,currentColor 12%,transparent));}}',
       '.dsfs-header-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,currentColor);outline-offset:-2px;}',
     ].join('');
-
-    /** Mount the stylesheet once per body instance; dropping the node removes it. */
-    function Styles() {
-      return h('style', { 'data-split-files-style': '' }, CSS);
-    }
 
     // --------------------------------------------------------------- helpers
 
@@ -301,12 +298,10 @@ window.__ModuleLoader__.load({
       const [levels, setLevels] = useState({});
       const [expanded, setExpanded] = useState(() => new Set());
       const generations = useRef(new Map());
-      const pending = useRef(new Set());
 
       const loadDir = useCallback(async (path) => {
         const generation = (generations.current.get(path) ?? 0) + 1;
         generations.current.set(path, generation);
-        pending.current.add(path);
         setLevels((prev) => ({
           ...prev,
           [path]: { status: 'loading', entries: prev[path]?.entries ?? [], truncated: false },
@@ -318,7 +313,6 @@ window.__ModuleLoader__.load({
           result = { ok: false, error };
         }
         if (generations.current.get(path) !== generation) return;
-        pending.current.delete(path);
         if (result && result.ok) {
           setLevels((prev) => ({
             ...prev,
@@ -343,24 +337,23 @@ window.__ModuleLoader__.load({
 
       useEffect(() => {
         generations.current = new Map();
-        pending.current = new Set();
         setLevels({});
         setExpanded(new Set());
         if (typeof root === 'string' && root.length > 0) loadDir(root);
       }, [root, loadDir]);
 
       const toggleDir = useCallback((path) => {
-        let opened = false;
+        const opening = !expanded.has(path);
         setExpanded((prev) => {
           const next = new Set(prev);
           if (next.has(path)) next.delete(path);
-          else { next.add(path); opened = true; }
+          else next.add(path);
           return next;
         });
         // Opening always re-reads the directory: an external change is far more
-        // likely between two visits than during one.
-        if (opened || !pending.current.has(path)) loadDir(path);
-      }, [loadDir]);
+        // likely between two visits than during one. Closing only collapses it.
+        if (opening) loadDir(path);
+      }, [expanded, loadDir]);
 
       const refresh = useCallback(() => {
         if (typeof root !== 'string' || root.length === 0) return;
@@ -377,13 +370,11 @@ window.__ModuleLoader__.load({
      * stylesheet (18 px). Directories come before files and are sorted the
      * same way the built-in Files tab sorts them.
      */
-    function TreeLevel({ path, depth, levels, expanded, activePath, onToggle, onPick, t }) {
+    function TreeLevel({ path, levels, expanded, activePath, onToggle, onPick, t }) {
       const level = levels[path];
       if (level === undefined) return null;
       const items = [];
-      const list = (children) => h('ul', {
-        className: depth === 0 ? 'dsfs-level dsfs-level-root' : 'dsfs-level',
-      }, children);
+      const list = (children) => h('ul', { className: 'dsfs-level' }, children);
       if (level.status === 'loading' && level.entries.length === 0) {
         return list([h('li', { key: path + '/loading', className: 'dsfs-note' }, t('tree.loading'))]);
       }
@@ -397,9 +388,8 @@ window.__ModuleLoader__.load({
       for (const entry of orderEntries(level.entries)) {
         const name = entry.name;
         const childPath = joinPath(path, name);
-        // Wire shape: `type` is 'file' | 'directory' | 'other'; `kind` is kept
-        // as a fallback so an older Host shape cannot blank the tree.
-        const isDir = entryType(entry) === 'directory';
+        // Wire shape: `type` is 'file' | 'directory' | 'other'.
+        const isDir = entry.type === 'directory';
         const isOpen = isDir && expanded.has(childPath);
         items.push(h('li', { key: childPath, className: 'dsfs-item' },
           h('button', {
@@ -416,7 +406,6 @@ window.__ModuleLoader__.load({
             ? h(TreeLevel, {
               key: childPath + '/level',
               path: childPath,
-              depth: depth + 1,
               levels,
               expanded,
               activePath,
@@ -438,7 +427,7 @@ window.__ModuleLoader__.load({
      * Read one file into the preview pane; text pages append, images become a
      * blob URL.
      * @param read - bound text page reader.
-     * @param readBytes - bound byte reader (images); absent on an older Host.
+     * @param readBytes - bound byte reader (images).
      */
     function usePreview({ read, readBytes }) {
       const [state, setState] = useState({ status: 'idle' });
@@ -462,7 +451,7 @@ window.__ModuleLoader__.load({
         const ext = extensionOf(path);
         const mime = IMAGE_MIME[ext];
 
-        if (mime !== undefined && typeof readBytes === 'function') {
+        if (mime !== undefined) {
           setState({ status: 'loading', path, name });
           let bytesResult;
           try {
@@ -525,7 +514,7 @@ window.__ModuleLoader__.load({
         if (run.current !== runId) return;
         setState((prev) => {
           if (prev.status !== 'ready' || prev.path !== current.path) return prev;
-          if (!result || !result.ok) return { ...prev, loadingMore: false, moreFailed: true };
+          if (!result || !result.ok) return { ...prev, loadingMore: false };
           const value = result.value ?? {};
           return {
             ...prev,
@@ -592,13 +581,9 @@ window.__ModuleLoader__.load({
       const preview = usePreview({ read, readBytes });
       const [ratio, setRatio] = useState(() => clampRatio(readStored(RATIO_KEY, readStored(LEGACY_RATIO_KEY, 46))));
       const [treeHidden, setTreeHidden] = useState(() => readStored(TREE_HIDDEN_KEY, readStored(LEGACY_TREE_HIDDEN_KEY, 'false')) === 'true');
+      const [treeRight, setTreeRight] = useState(() => readStored(TREE_SIDE_KEY, 'left') === 'right');
       const [dragging, setDragging] = useState(false);
       const containerRef = useRef(null);
-
-      const persistRatio = useCallback((next) => {
-        setRatio(next);
-        writeStored(RATIO_KEY, Math.round(next));
-      }, []);
 
       const onSplitterDown = useCallback((event) => {
         const container = containerRef.current;
@@ -607,8 +592,8 @@ window.__ModuleLoader__.load({
         setDragging(true);
         const rect = container.getBoundingClientRect();
         const move = (moveEvent) => {
-          const next = clampRatio(((moveEvent.clientX - rect.left) / Math.max(1, rect.width)) * 100);
-          setRatio(next);
+          const pointer = ((moveEvent.clientX - rect.left) / Math.max(1, rect.width)) * 100;
+          setRatio(clampRatio(treeRight ? 100 - pointer : pointer));
         };
         const up = () => {
           setDragging(false);
@@ -618,12 +603,20 @@ window.__ModuleLoader__.load({
         };
         window.addEventListener('pointermove', move);
         window.addEventListener('pointerup', up, { once: true });
-      }, []);
+      }, [treeRight]);
 
       const toggleTree = useCallback(() => {
         setTreeHidden((current) => {
           const next = !current;
           writeStored(TREE_HIDDEN_KEY, next ? 'true' : 'false');
+          return next;
+        });
+      }, []);
+
+      const toggleSide = useCallback(() => {
+        setTreeRight((current) => {
+          const next = !current;
+          writeStored(TREE_SIDE_KEY, next ? 'right' : 'left');
           return next;
         });
       }, []);
@@ -642,13 +635,12 @@ window.__ModuleLoader__.load({
           hasRoot
             ? h(primitives.PathLabel, { path: cwd, className: 'dsfs-path' })
             : h('span', { className: 'dsfs-header-hint' }, t('tree.title')),
-          h(ToolButton, { label: t('tree.hide'), onClick: toggleTree }, h(CollapseIcon, {})),
+          h(ToolButton, { label: t('tree.hide'), onClick: toggleTree }, h(treeRight ? ExpandIcon : CollapseIcon, {})),
           h(ToolButton, { label: t('tree.refresh'), onClick: tree.refresh }, h(RefreshIcon, {}))),
         h('div', { className: 'dsfs-tree-body' },
           hasRoot
             ? h(TreeLevel, {
               path: cwd,
-              depth: 0,
               levels: tree.levels,
               expanded: tree.expanded,
               activePath: preview.state.path,
@@ -662,20 +654,27 @@ window.__ModuleLoader__.load({
       const previewPane = h('div', { className: 'dsfs-pane dsfs-preview-pane' },
         h('div', { className: 'dsfs-bar' },
           treeHidden
-            ? h(ToolButton, { label: t('tree.show'), onClick: toggleTree }, h(ExpandIcon, {}))
+            ? h(ToolButton, { label: t('tree.show'), onClick: toggleTree }, h(treeRight ? CollapseIcon : ExpandIcon, {}))
             : null,
           preview.state.path !== undefined
             ? h(primitives.PathLabel, { path: preview.state.path, className: 'dsfs-path' })
             : h('span', { className: 'dsfs-header-hint' }, hasRoot ? baseName(cwd) : t('preview.empty')),
           typeof preview.state.bytes === 'number'
             ? h('span', { className: 'dsfs-meta' }, formatBytes(preview.state.bytes))
-            : null),
+            : null,
+          h(ToolButton, {
+            label: t(treeRight ? 'tree.toLeft' : 'tree.toRight'),
+            onClick: toggleSide,
+          }, h(primitives.IconCompareSplitOutlineRegular, {}))),
         h(PreviewPane, { state: preview.state, t, onLoadMore: preview.loadMore }));
 
       return h(React.Fragment, null,
-        h(Styles, null),
         h('div', { className: 'dsfs-root', 'data-split-files-root': '' },
-          h('div', { className: 'dsfs-main', ref: containerRef },
+          h('div', {
+            className: 'dsfs-main',
+            'data-tree-side': treeRight ? 'right' : 'left',
+            ref: containerRef,
+          },
             treePane,
             treeHidden
               ? null
@@ -690,13 +689,13 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * The tab chip's title slot: the native compare-split icon plus the title
+     * The tab chip's title slot: the native PanelLeft icon plus the title
      * captured when the tab was opened (the framework's own `tab.title`).
      */
     function Title({ useTabInfo }) {
       const { tab } = useTabInfo();
       return h('span', { className: 'dsfs-title' },
-        h(primitives.IconCompareSplitOutlineRegular, { size: 16 }),
+        h(primitives.IconPanelLeftOutlineRegular, { size: 16 }),
         h('span', null, tab?.title ?? ''));
     }
 
@@ -713,15 +712,14 @@ window.__ModuleLoader__.load({
 
       ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'split-files: dictionaries');
 
-      // The header button lives outside the tab body, so its stylesheet is
-      // global and removed with the plugin fiber.
+      // One stylesheet for the whole plugin; dropping the node removes it.
       ctx.effect(() => {
         const style = document.createElement('style');
-        style.setAttribute('data-split-files-global', '');
-        style.textContent = GLOBAL_CSS;
+        style.setAttribute('data-split-files-style', '');
+        style.textContent = CSS + HEADER_CSS;
         document.head.appendChild(style);
         return () => { style.remove(); };
-      }, 'split-files: global styles');
+      }, 'split-files: styles');
 
       /**
        * Open (and focus) the split tab through the captured pane target. It runs
@@ -741,28 +739,22 @@ window.__ModuleLoader__.load({
         // just-opened Session may not have one yet, so retry briefly while
         // its view mounts and adopts the store.
         const attemptOpen = (left) => {
-          try {
-            const target = typeof ctx.sidebarRight.commandTarget === 'function'
-              ? ctx.sidebarRight.commandTarget()
-              : undefined;
-            if (target !== undefined && typeof ctx.sidebarRight.openTabFromTarget === 'function') {
-              ctx.sidebarRight.openTabFromTarget(KIND, target);
-              return;
-            }
-            // Public fallback: an active guide gives way to the page it opens,
-            // the same rule the host's own guide entries apply.
-            const activeTab = typeof ctx.sidebarRight.active === 'function'
-              ? ctx.sidebarRight.active()
-              : undefined;
-            ctx.sidebarRight.openTab(KIND, activeTab !== undefined && activeTab.kind === 'guide'
-              ? { replaceTab: activeTab.id }
-              : {});
-          } catch (error) {
+          const retry = (error) => {
             if (left > 0) {
               window.setTimeout(() => attemptOpen(left - 1), 180);
               return;
             }
             console.error('[split-files] open tab failed:', error);
+          };
+          try {
+            const target = ctx.sidebarRight.commandTarget();
+            if (target === undefined) {
+              retry('the sidebar has no on-screen target yet');
+              return;
+            }
+            ctx.sidebarRight.openTabFromTarget(KIND, target);
+          } catch (error) {
+            retry(error);
           }
         };
         attemptOpen(8);
@@ -779,7 +771,7 @@ window.__ModuleLoader__.load({
         'aria-label': t('button.open'),
         'data-split-files-open': '',
         onClick: open,
-      }, h(primitives.IconCompareSplitOutlineRegular, { size: 16 }));
+      }, h(primitives.IconPanelLeftOutlineRegular, { size: 16 }));
 
       ctx.effect(() => ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
         name: 'conversation.session.header.utilities',
@@ -813,9 +805,7 @@ window.__ModuleLoader__.load({
           sessionId,
           list: (path, signal) => ctx.remote.workspaceFiles.list(sessionId, path, signal),
           read: (path, range, signal) => ctx.remote.workspaceFiles.read(sessionId, path, range, signal),
-          readBytes: typeof ctx.remote?.workspaceFiles?.readBytes === 'function'
-            ? (path, options, signal) => ctx.remote.workspaceFiles.readBytes(sessionId, path, options ?? {}, signal)
-            : undefined,
+          readBytes: (path, options, signal) => ctx.remote.workspaceFiles.readBytes(sessionId, path, options ?? {}, signal),
         }),
       }, Body)), 'split-files: tab body');
 

@@ -82,10 +82,11 @@ dsh plugin --profile desktop remove dsh-2sidebar
 ## Usage
 
 - Click a directory to expand or collapse it; expanding re-reads that directory.
-- Click a file to load it into the right pane; the tree keeps its scroll position and expansion state.
+- Click a file to load it into the preview pane; the tree keeps its scroll position and expansion state.
 - Drag the divider to change the split ratio; the ratio is saved when you release.
 - **Reload** refreshes the root and every expanded directory.
-- **Hide tree** collapses the left pane; the preview keeps the selected file.
+- **Hide tree** collapses the tree pane; the preview keeps the selected file.
+- **Switch sides** (the split icon at the end of the preview header) moves the tree between the left and right of the split; the tree starts on the left and the choice is remembered.
 - For text, **Load more** appends the next 2,000-line page; the footer shows `End of file` at the end.
 - PDF/Office/HTML files are intentionally not rendered inline — open them in DSH's native preview instead.
 
@@ -101,7 +102,7 @@ The package is a **client-only bundle**:
 
 - `index.js` is an empty host half; all rendering lives in the browser.
 - The client registers a sidebar tab **type** (`ctx.sidebarRightTabs`), its **body** through the `sidebar.right.pane.tab` slot, its **title** through `sidebar.right.pane.tab.title`, a header button through `conversation.session.header.utilities`, and its own locale dictionaries (`zh`, `en`).
-- Directory listings and file pages come from the host's existing `ctx.remote.workspaceFiles` (`list` / `read` / `readBytes`); the workspace root comes from `ctx.sessions.list`. The plugin adds no host routes and no permissions of its own.
+- Directory listings and file pages come from the host's existing `ctx.remote.workspaceFiles` (`list` / `read` / `readBytes`); the workspace root comes from the framework's standard `useSessions` prop. The plugin adds no host routes and no permissions of its own.
 - `cordis.patch.yml` inserts one profile row; `keepMounted: true` keeps the body alive across tab switches, so the tree state survives.
 
 ## FAQ
@@ -121,8 +122,8 @@ Not inline. Use DSH's native preview tab for those formats; this plugin focuses 
 **Does the plugin read or send my files anywhere?**
 It is read-only: it calls the host's workspace file service, which applies the same workspace scoping and limits as the built-in UI. The bundle makes no network requests and has no telemetry.
 
-**Where are the split ratio and tree state stored?**
-In `localStorage` (`dsh-2sidebar.ratio`, `dsh-2sidebar.tree-hidden`). Clear site data or those two keys to reset them. The pre-rename `dsh-split-files.*` keys are still read as a fallback when the new key is absent.
+**Where are the split ratio, tree state and side stored?**
+In `localStorage` (`dsh-2sidebar.ratio`, `dsh-2sidebar.tree-hidden`, `dsh-2sidebar.tree-side`). Clear site data or those keys to reset them. The pre-rename `dsh-split-files.*` keys are still read as a fallback when the new key is absent.
 
 **Why are there two file tabs?**
 The built-in **Files** tab is for opening files into native previews; this plugin is for reading a tree and a file at the same time. They do not conflict.
@@ -133,7 +134,6 @@ The built-in **Files** tab is for opening files into native previews; this plugi
 - Auto-refresh through the workspace file change feed.
 - "Open in native preview" for PDF/Office/HTML.
 - Keyboard navigation and a configurable shortcut.
-- Automated tests and CI.
 - More UI languages.
 
 ## Development

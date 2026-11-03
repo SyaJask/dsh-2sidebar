@@ -73,6 +73,24 @@ test('body reads the workspace root through the useSessions standard prop', () =
   assert.ok(paths.includes('C:/ws'), `rendered paths: ${paths.join(', ')}`);
 });
 
+test('body starts with the tree on the left and offers the side switch', () => {
+  const { slots } = setup();
+  const body = slots.find((entry) => entry.options.name === 'sidebar.right.pane.tab');
+  const element = body.component({
+    ...body.options.inject('s1'),
+    t: (key) => key,
+    useSessions: (selector) => selector({ byId: { s1: { cwd: 'C:/ws' } } }),
+  });
+  const props = [];
+  walk(element, (node) => props.push(node.props ?? {}));
+  const main = props.find((nodeProps) => nodeProps['data-tree-side'] !== undefined);
+  assert.ok(main, 'the split container must expose its tree side');
+  assert.equal(main['data-tree-side'], 'left');
+  const toggle = props.find((nodeProps) => nodeProps.label === 'tree.toRight');
+  assert.ok(toggle, 'the preview header must offer moving the tree to the right');
+  assert.equal(typeof toggle.onClick, 'function');
+});
+
 test('header button receives its open callback through the inject face', () => {
   const { slots, opened, setTarget } = setup();
   const header = slots.find((entry) => entry.options.name === 'conversation.session.header.utilities');
@@ -88,15 +106,13 @@ test('header button receives its open callback through the inject face', () => {
 
   button.props.onClick();
   assert.equal(opened.length, 1);
-  assert.equal(opened[0].via, 'target');
   assert.equal(opened[0].kind, 'split-files');
+  assert.equal(opened[0].target.sessionId, 's1');
 
+  // Without an on-screen target there is no lesser open path: nothing opens.
   setTarget(undefined);
   button.props.onClick();
-  assert.equal(opened.length, 2);
-  assert.equal(opened[1].via, 'openTab');
-  assert.equal(opened[1].kind, 'split-files');
-  assert.equal(opened[1].options.replaceTab, 'guide-1');
+  assert.equal(opened.length, 1);
 });
 
 test('title slot renders the captured tab title', () => {

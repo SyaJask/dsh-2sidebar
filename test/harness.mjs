@@ -117,9 +117,7 @@ export function createContext() {
     },
     sidebarRight: {
       commandTarget: () => target,
-      openTabFromTarget: (kind, captured) => opened.push({ via: 'target', kind, target: captured }),
-      openTab: (kind, options) => opened.push({ via: 'openTab', kind, options }),
-      active: () => ({ id: 'guide-1', kind: 'guide' }),
+      openTabFromTarget: (kind, captured) => opened.push({ kind, target: captured }),
     },
     remote: {
       workspaceFiles: {

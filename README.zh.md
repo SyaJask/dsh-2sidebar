@@ -82,10 +82,11 @@ dsh plugin --profile desktop remove dsh-2sidebar
 ## 使用
 
 - 点目录展开/收起；展开时会重新读取该层。
-- 点文件在右栏打开；目录树保持滚动位置与展开状态。
+- 点文件在内容栏打开；目录树保持滚动位置与展开状态。
 - 拖动分隔条调整左右比例，松手时保存。
 - **重新读取**刷新根目录和所有已展开目录。
-- **收起目录**折叠左栏，右栏保留当前文件。
+- **收起目录**折叠目录栏，内容栏保留当前文件。
+- **切换左右**（内容栏标题末尾的分栏图标）把目录树在分栏左侧和右侧之间切换；默认在左，选择会被记住。
 - 文本底部 **加载更多** 追加下一页（2,000 行），到底显示「已到文件末尾」。
 - PDF / Office / HTML 不会内联渲染，请用 DSH 原生预览页签打开。
 
@@ -101,7 +102,7 @@ dsh plugin --profile desktop remove dsh-2sidebar
 
 - `index.js` 是空的 Host 半侧，渲染全部在浏览器里。
 - 客户端注册一个侧栏页签**类型**（`ctx.sidebarRightTabs`），通过 `sidebar.right.pane.tab` 槽位注册**正文**、`sidebar.right.pane.tab.title` 槽位注册**标题**，通过 `conversation.session.header.utilities` 注册标题栏按钮，并注册自己的中英文词典。
-- 目录列举与文件读取全部走宿主已有的 `ctx.remote.workspaceFiles`（`list` / `read` / `readBytes`），工作目录来自 `ctx.sessions.list`。插件不新增 Host 路由，也不申请额外权限。
+- 目录列举与文件读取全部走宿主已有的 `ctx.remote.workspaceFiles`（`list` / `read` / `readBytes`），工作目录通过框架标准的 `useSessions` prop 读取。插件不新增 Host 路由，也不申请额外权限。
 - `cordis.patch.yml` 只插入一行 profile 记录；`keepMounted: true` 让正文在切页签后继续存活，树的展开状态因此得以保留。
 
 ## 常见问题
@@ -121,8 +122,8 @@ dsh plugin --profile desktop remove dsh-2sidebar
 **插件会读取或上传我的文件吗？**
 只读：它调用宿主的 workspace 文件服务，作用范围和上限与内建界面一致。bundle 不发网络请求，也没有遥测。
 
-**分栏比例和树状态存在哪？**
-`localStorage` 的 `dsh-2sidebar.ratio` 和 `dsh-2sidebar.tree-hidden`。清除站点数据或这两个键即可重置。改名前的 `dsh-split-files.*` 键在新键缺失时仍会作为兜底读取。
+**分栏比例、树状态和左右方向存在哪？**
+`localStorage` 的 `dsh-2sidebar.ratio`、`dsh-2sidebar.tree-hidden` 和 `dsh-2sidebar.tree-side`。清除站点数据或这些键即可重置。改名前的 `dsh-split-files.*` 键在新键缺失时仍会作为兜底读取。
 
 **为什么会有两个文件页签？**
 自带的 **Files** 页签用于把文件交给原生预览；本插件用于同时看目录和文件。两者不冲突。
@@ -133,7 +134,6 @@ dsh plugin --profile desktop remove dsh-2sidebar
 - 通过 workspace 文件变更流自动刷新。
 - 「在原生预览中打开」（PDF/Office/HTML）。
 - 键盘导航与可配置快捷键。
-- 自动化测试与 CI。
 - 更多界面语言。
 
 ## 开发
