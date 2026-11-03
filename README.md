@@ -7,15 +7,15 @@
 [![DeepSeek Harness 0.2.1-rc.5](<https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.5-4f46e5>)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
-A split-pane file browser for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) right sidebar: **directory tree on the left, the selected file on the right** — both visible at once, so switching files never moves the tree.
+A split-pane file browser for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) right sidebar: **the directory tree and the selected file side by side in one tab** — both visible at once, so switching files never moves the tree. The tree starts on the left and can be switched to the right.
 
 ![Split files in the DSH right sidebar](docs/screenshot-split-files.png)
 
-> Status: early (`0.1.3`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
+> Status: early (`0.1.4`). The plugin uses DSH's client extension points, which are still moving — check [Compatibility](#compatibility) before upgrading DSH.
 
 ## Why
 
-DSH's built-in **Files** tab opens a file as a sidebar preview, so browsing and reading share one column. This plugin keeps the tree and the preview side by side in the same tab: click a file, the right pane switches, the tree stays exactly where it was.
+DSH's built-in **Files** tab opens a file as a sidebar preview, so browsing and reading share one column. This plugin keeps the tree and the preview side by side in the same tab: click a file, the preview switches, the tree stays exactly where it was.
 
 |                      | dsh-2sidebar                  | Built-in Files tab                                 |
 | -------------------- | ----------------------------- | -------------------------------------------------- |

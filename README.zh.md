@@ -7,15 +7,15 @@
 [![DeepSeek Harness 0.2.1-rc.5](<https://img.shields.io/badge/DeepSeek%20Harness-0.2.1--rc.5-4f46e5>)](https://github.com/deepseek-ai/deepseek-harness)
 [![GitHub release](https://img.shields.io/github/v/release/SyaJask/dsh-2sidebar?include_prereleases&label=release)](https://github.com/SyaJask/dsh-2sidebar/releases)
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）右侧栏用的「目录分栏」插件：**左边目录树、右边文件内容**，两栏同时可见，切换文件时目录树原地不动。
+给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）右侧栏用的「目录分栏」插件：**目录树和文件内容在同一个页签内左右并排**，两栏同时可见，切换文件时目录树原地不动。默认树在左，可一键切到右侧。
 
 ![DSH 右侧栏里的目录分栏](docs/screenshot-split-files.png)
 
-> 状态：早期版本（`0.1.3`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
+> 状态：早期版本（`0.1.4`）。插件依赖 DSH 的客户端扩展点，这些接口仍在演进；升级 DSH 前请先看[兼容性](#兼容性)。
 
 ## 为什么做这个
 
-DSH 自带的 **Files** 页签是把文件作为预览打开在侧栏里，浏览目录和阅读文件共用同一列。本插件把目录树和预览放进**同一个页签的两栏**：点文件，右栏切换，左树完全不动。
+DSH 自带的 **Files** 页签是把文件作为预览打开在侧栏里，浏览目录和阅读文件共用同一列。本插件把目录树和预览放进**同一个页签的两栏**：点文件，内容栏切换，目录树完全不动。
 
 |                  | dsh-2sidebar          | 自带 Files 页签                  |
 | ---------------- | --------------------- | -------------------------------- |

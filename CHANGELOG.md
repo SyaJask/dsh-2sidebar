@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-04
+
 ### Added
 
 - A preview-header control swaps the directory tree to the right of the preview
@@ -95,7 +97,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The bundle is named `dsh-2sidebar` (previously `@local/dsh-split-files`); the
   old `dsh-split-files.*` localStorage keys are still read once.
 
-[Unreleased]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/SyaJask/dsh-2sidebar/compare/v0.1.0...v0.1.1
